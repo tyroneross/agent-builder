@@ -2,6 +2,40 @@
 
 A comprehensive, modular skill for designing, evaluating, and improving agentic harnesses — the layer around the model that turns a language model into a product.
 
+## Distribution model
+
+Agent Builder has two distribution shapes:
+
+- **RossLabs AI Toolkit marketplace plugin:** the slim skill/instruction package.
+  Use this when you want Agent Builder to show up inside Claude/Codex as a
+  lightweight design and evaluation skill.
+- **This GitHub repo:** the full downloadable Agent Builder workbench. Use this
+  when you want the local Next.js visual builder, generated agent structures,
+  sandbox tests, DOE runs, example artifacts, and implementation tooling.
+
+The marketplace plugin should stay small. The heavier app, artifact examples,
+local DOE experiments, and generated outputs belong in this repo or in GitHub
+release assets, not inside the RossLabs AI Toolkit package.
+
+If you already installed the marketplace plugin, pulling this repo does not
+automatically update that installed plugin. Reinstall or update the marketplace
+package when the slim toolkit package changes. To get the full workbench, clone
+or pull this repo directly:
+
+```bash
+git clone https://github.com/tyroneross/agent-builder.git
+cd agent-builder
+npm install
+```
+
+Existing checkout:
+
+```bash
+git checkout main
+git pull --ff-only origin main
+npm install
+```
+
 ## Local visual builder
 
 This repo now includes a local Next.js app for turning a simple flowchart into buildable agent files.
@@ -149,15 +183,28 @@ To activate a variant as the default, replace the root `SKILL.md` with the varia
 
 ## Install
 
-**As a Claude Code plugin via the RossLabs marketplace:**
+**Slim plugin via the RossLabs marketplace:**
 ```bash
 /plugin marketplace add tyroneross/RossLabs-AI-Toolkit
 /plugin install agent-builder@RossLabs-AI-Toolkit
 ```
 
+This installs the lightweight skill from the toolkit. It does not install the
+full local app, generated artifact suite, or DOE workbench from this repo.
+
+**Full downloadable workbench from GitHub:**
+```bash
+git clone https://github.com/tyroneross/agent-builder.git
+cd agent-builder
+npm install
+npm run serve
+```
+
 **As a standalone user skill** (any plugin host or bare Claude Code):
 ```bash
-cp -R skills/agent-builder ~/.claude/skills/agent-builder
+mkdir -p ~/.claude/skills/agent-builder
+rsync -a SKILL.md README.md LICENSE metadata.json references examples variants agents \
+  ~/.claude/skills/agent-builder/
 ```
 
 **Inside another plugin:** drop `agent-builder/` into that plugin's `skills/` directory and it becomes available wherever the host plugin is installed.
