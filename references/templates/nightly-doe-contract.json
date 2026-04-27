@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "agent-builder.nightly-doe-contract.v1",
+  "status": "design-only",
+  "featureFlag": {
+    "id": "nightlyLocalDoe",
+    "enabled": false,
+    "defaultState": "off",
+    "enableRequires": "explicit user approval plus runner implementation"
+  },
+  "purpose": "Define how a future local LLM DOE automation should inspect multiple repos overnight and produce morning recommendations.",
+  "runnerStatus": {
+    "executableRunnerIncluded": false,
+    "reason": "Hold until the user explicitly approves the actual nightly runner."
+  },
+  "targetRepoPolicy": {
+    "defaultAccess": "read-only",
+    "writesAllowed": false,
+    "writeTarget": "agent-outputs/nightly-doe/<run-id>/",
+    "requiresExplicitApprovalForPatches": true,
+    "requiresExplicitApprovalForGuardExecution": true
+  },
+  "crossRepoScope": {
+    "repoDescriptorFormat": {
+      "name": "string",
+      "path": "absolute path",
+      "track": "agent-artifact-quality | code-quality | security-simulation | ui-improvement | product-update-tailoring | customer-specific-update"
+    },
+    "allowedDefaultActions": [
+      "read package metadata",
+      "read git status summary",
+      "read existing test/build script names",
+      "write morning recommendation packet in agent-builder output folder"
+    ],
+    "disallowedDefaultActions": [
+      "modify target repo files",
+      "run penetration tools",
+      "publish customer-specific updates",
+      "read secrets",
+      "download dependencies"
+    ]
+  },
+  "localModelInterpretation": {
+    "defaultMode": "cautious",
+    "minimumReplicatesForRecommendation": 3,
+    "preferredReplicates": 4,
+    "confidenceLabels": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "rules": [
+      "Do not infer a trend from one run.",
+      "Change at most four factors per nightly DOE.",
+      "Keep prompts short and artifact-specific for smaller local models.",
+      "Separate measurement from interpretation.",
+      "Promote only medium-or-higher confidence findings.",
+      "Treat low-confidence findings as repeat prompts.",
+      "Escalate security findings to a stronger reviewer before action."
+    ]
+  },
+  "morningPacketContract": {
+    "requiredFiles": [
+      "nightly-doe-results.json",
+      "morning-recommendations.md",
+      "automation-handoff.md",
+      "learning-ledger.json",
+      "repo-summaries/<repo>.json"
+    ],
+    "recommendationFields": [
+      "repo",
+      "track",
+      "experiment",
+      "metricResult",
+      "confidence",
+      "recommendedAction",
+      "artifactsProduced",
+      "whyNotTrustYet"
+    ]
+  },
+  "expansionTracks": [
+    "code quality and test coverage",
+    "security and penetration-test simulation",
+    "UI improvement",
+    "customer-specific product update drafting",
+    "agent artifact quality"
+  ]
+}

@@ -57,6 +57,12 @@ Each structure now includes an eval-gated domain-learning layer:
 
 The DOE runner (`npm run agent:doe`) runs a `2^3` full factorial test over artifact factors: acceptance criteria, permission invariants, and reflection prompts. The default generated artifacts keep all three because that setting produced the best sandbox score while preserving the test guard.
 
+Nightly local DOE automation is currently contract-only. The actual runner is
+held back and the `nightlyLocalDoe` feature flag is off by default, but the
+read-only cross-repo scope, cautious local-model interpretation rules, and
+morning packet shape are documented in
+`docs/nightly-local-doe.md` and `references/templates/nightly-doe-contract.json`.
+
 Sandbox runs default to `/tmp` to avoid macOS app-sandbox permission drift under `/var/folders`. Override with `AGENT_BUILDER_TMPDIR=/path/to/tmp` when needed.
 
 See `docs/agent-optimization-report.md` for the optimization log, DOE findings, and test outputs.
