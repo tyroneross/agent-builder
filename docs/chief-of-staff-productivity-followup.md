@@ -20,6 +20,7 @@ Chief of Staff team, and emits real files under the artifact suite.
 | Learning ledger | `agent-outputs/hypothetical-local-agent-suite/final/chief-of-staff-agent/schedule-optimizer/learning-ledger.json` |
 | Chief of Staff team map | `agent-outputs/hypothetical-local-agent-suite/final/chief-of-staff-agent/schedule-optimizer/chief-of-staff-team.md` |
 | Local model comparison | `agent-outputs/hypothetical-local-agent-suite/final/model-comparison-agent/local-llm-review/model-comparison.md` |
+| Nightly local LLM DOE recommendations | `agent-outputs/hypothetical-local-agent-suite/final/local-llm-doe-agent/experiment-loop/morning-recommendations.md` |
 | Agent skill index | `agent-outputs/hypothetical-local-agent-suite/final/agent-skill-pack/skills-index.json` |
 
 ## Chief of Staff Design
@@ -38,6 +39,38 @@ Core team:
 The first version deliberately stays simple: five tools, one orchestrator, and
 schedule-specific skills instead of exposing a large tool surface to local
 models.
+
+## Nightly Experiment Operator
+
+The local LLM DOE agent is the path toward a nightly Chief of Staff operator. It
+can run bounded Codex or Claude automations across selected repos, keep writes
+inside approved folders, and produce a morning recommendation packet.
+
+Latest 50-run artifact suite score after adding the nightly DOE agent:
+
+`11282/11727`
+
+Best local DOE settings in the current structural metric:
+
+- interpretation mode: cautious
+- replicate count: 4
+
+Recommended morning packet:
+
+- repo and experiment name
+- metric movement
+- confidence label
+- recommended action
+- artifacts produced
+- what not to trust yet
+
+Expansion tracks:
+
+- penetration-test simulation and sandbox checks
+- UI improvement candidates
+- customer-specific product update drafts
+- product use-case tailoring
+- agent handoff and artifact quality regressions
 
 ## Measured Result
 
@@ -117,3 +150,23 @@ commands used as guardrails.
 - Add a chunked local-model evaluation runner for slow models.
 - Add a small UI panel for approving, rejecting, or editing proposed calendar
   changes before export.
+
+## 50-Run DOE Follow-up
+
+The next optimization pass added a 50-run mixed-level DOE and agent handoff
+artifacts.
+
+New command:
+
+```bash
+npm run agents:artifacts:score50
+```
+
+Latest score: `10388`.
+
+Best run: `mixed-05-deck8-doc7-dash5-recovery-minimal`.
+
+The new DOE varies deck depth, Word structure, dashboard breadth, schedule
+strategy, research depth, QA depth, skill depth, and handoff format.
+
+See `docs/fifty-doe-experiment-report.md` for the full result.

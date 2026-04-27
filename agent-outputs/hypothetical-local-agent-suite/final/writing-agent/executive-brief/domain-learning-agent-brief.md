@@ -20,6 +20,6 @@
 
 - Model calls skipped for deterministic test run
 
-## Next Step
+## Research Accuracy
 
-- Wire these real artifact adapters into the visual Build Agent action.
+- Research depth factor: default. Claims are separated into verified, inferred, unsupported, and needs-review states.

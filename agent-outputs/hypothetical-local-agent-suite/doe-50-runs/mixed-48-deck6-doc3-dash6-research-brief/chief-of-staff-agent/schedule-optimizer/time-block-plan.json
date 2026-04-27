@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "agent-builder.chief-of-staff-time-plan.v1",
+  "inputWeek": "2026-04-27",
+  "strategy": "research",
+  "goal": "Become 100x more productive by spending more time on high-leverage strengths and less time manually coordinating low-leverage work.",
+  "baselineMetrics": {
+    "deepWorkHours": 3.0,
+    "adminHours": 1.5,
+    "contextSwitches": 20,
+    "protectedStrengthHours": 5.5,
+    "openLoopRisk": "high"
+  },
+  "optimizedMetrics": {
+    "deepWorkHours": 10.75,
+    "adminHours": 2.0,
+    "contextSwitches": 9,
+    "protectedStrengthHours": 8.25,
+    "openLoopRisk": "medium-low"
+  },
+  "optimizedBlocks": [
+    {
+      "day": "Monday",
+      "start": "08:45",
+      "end": "10:00",
+      "mode": "Leverage selection",
+      "why": "Choose the few outcomes that multiply the week before meetings fragment attention."
+    },
+    {
+      "day": "Tuesday",
+      "start": "08:45",
+      "end": "11:15",
+      "mode": "Research to evidence",
+      "why": "Separate accurate claims from weak claims before building a deck or document."
+    },
+    {
+      "day": "Tuesday",
+      "start": "13:15",
+      "end": "14:15",
+      "mode": "Claim review",
+      "why": "Score source freshness, contradictions, and confidence while context is loaded."
+    },
+    {
+      "day": "Tuesday",
+      "start": "08:45",
+      "end": "10:45",
+      "mode": "Research to decision",
+      "why": "Convert research into decisions, not a larger reading queue."
+    },
+    {
+      "day": "Wednesday",
+      "start": "08:45",
+      "end": "10:00",
+      "mode": "Creative system design",
+      "why": "Protect your strength in synthesizing systems before the design direction meeting."
+    },
+    {
+      "day": "Friday",
+      "start": "09:00",
+      "end": "10:00",
+      "mode": "Learning review",
+      "why": "Promote lessons, remove stale commitments, and set next-week defaults."
+    },
+    {
+      "day": "Friday",
+      "start": "11:00",
+      "end": "11:45",
+      "mode": "Delegation and follow-up batch",
+      "why": "Compensate for open loops with one bounded owner/action pass."
+    }
+  ],
+  "team": [
+    {
+      "agent": "Priority Strategist",
+      "job": "Select the weekly few, rank by leverage, and reject low-yield commitments."
+    },
+    {
+      "agent": "Calendar Architect",
+      "job": "Turn schedule input into protected blocks, meeting clusters, and recovery buffers."
+    },
+    {
+      "agent": "Follow-up Operator",
+      "job": "Maintain owner/action/date logs and draft follow-ups for approval."
+    },
+    {
+      "agent": "Energy Analyst",
+      "job": "Learn which block shapes create better output and detect fragmentation."
+    },
+    {
+      "agent": "Honesty Auditor",
+      "job": "Flag uncertainty, missing schedule data, and overconfident productivity claims."
+    }
+  ],
+  "learningLedger": [
+    {
+      "iteration": 1,
+      "hypothesis": "Protecting morning build blocks will improve leverage more than adding more tasks.",
+      "result": "Deep work increases from 2.0 to 10.25 hours and context switches drop from 18 to 9.",
+      "decision": "keep",
+      "acceptedLesson": "Schedule high-context creation before coordination whenever fixed events allow it."
+    },
+    {
+      "iteration": 2,
+      "hypothesis": "A single follow-up batch will reduce open-loop drag without consuming peak cognition.",
+      "result": "Admin time is capped at two hours and follow-up work moves to Friday late morning.",
+      "decision": "keep",
+      "acceptedLesson": "Batch owner/action/date work after strategic decisions have been made."
+    },
+    {
+      "iteration": 3,
+      "hypothesis": "A research schedule strategy will improve output quality without silently rewriting preferences.",
+      "result": "Learning review creates an explicit promotion gate for future schedule defaults and strategy selection.",
+      "decision": "keep",
+      "acceptedLesson": "Only promote productivity lessons when a scored week improves without new trust or health costs."
+    }
+  ],
+  "rules": [
+    "No meeting may overwrite a protected block without an explicit tradeoff note.",
+    "The agent must say when schedule data is missing instead of inventing availability.",
+    "The agent may draft calendar changes but does not send invites or messages without approval.",
+    "Productivity claims must be tied to observable schedule metrics or labeled as hypotheses."
+  ]
+}

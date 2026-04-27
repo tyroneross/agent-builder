@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "agent-builder.local-model-comparison.v1",
+  "status": "skipped",
+  "reason": "Model calls skipped for deterministic test run.",
+  "recommendedRouter": [
+    {
+      "useCase": "fast smoke tests",
+      "model": "tinyllama:latest",
+      "reason": "lowest local runtime cost"
+    },
+    {
+      "useCase": "balanced schedule planning",
+      "model": "qwen3:8b-q4_K_M",
+      "reason": "good structure at moderate size"
+    },
+    {
+      "useCase": "higher-quality synthesis",
+      "model": "gemma4:26b",
+      "reason": "stronger reasoning if latency is acceptable"
+    },
+    {
+      "useCase": "coding-heavy edits",
+      "model": "qwen2.5-coder:32b-instruct-q5_K_M",
+      "reason": "installed coder model, run selectively"
+    }
+  ]
+}

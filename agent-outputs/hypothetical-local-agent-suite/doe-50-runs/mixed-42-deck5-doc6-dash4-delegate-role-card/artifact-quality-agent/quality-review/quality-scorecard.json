@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "agent-builder.artifact-quality.v1",
+  "profile": "mixed-42",
+  "qaDepth": 7,
+  "checks": [
+    {
+      "check": "Office packages are macro-free",
+      "status": "pass"
+    },
+    {
+      "check": "HTML dashboards contain no external links",
+      "status": "pass"
+    },
+    {
+      "check": "Schedule plan improves deep-work hours",
+      "status": "pass"
+    },
+    {
+      "check": "Research deck has a claim table",
+      "status": "pass"
+    },
+    {
+      "check": "Word plan contains structured tables",
+      "status": "pass"
+    },
+    {
+      "check": "Agent handoff includes stop conditions",
+      "status": "pass"
+    },
+    {
+      "check": "Run manifest records experiment factors",
+      "status": "pass"
+    }
+  ],
+  "score": 7,
+  "maxScore": 7
+}

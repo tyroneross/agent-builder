@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "agent-builder.claim-table.v1",
+  "claims": [
+    {
+      "claim": "Narrow tool surfaces reduce local-model failure risk.",
+      "status": "verified",
+      "confidence": "high",
+      "source": "Anthropic Building Effective Agents"
+    },
+    {
+      "claim": "Agent handoffs should include task goal, available context, constraints, expected output, and stop conditions.",
+      "status": "inferred",
+      "confidence": "medium",
+      "source": "OpenAI Agents SDK guardrail patterns"
+    },
+    {
+      "claim": "Research decks should be generated from a claim table, not from prose alone.",
+      "status": "inferred",
+      "confidence": "medium",
+      "source": "agent-builder local validation"
+    },
+    {
+      "claim": "Persistent lessons should require evaluation before promotion.",
+      "status": "verified",
+      "confidence": "high",
+      "source": "Reflexion and DSPy research patterns"
+    },
+    {
+      "claim": "Large multi-agent systems fail through bad verification and poor inter-agent communication.",
+      "status": "verified",
+      "confidence": "high",
+      "source": "MAST failure taxonomy"
+    }
+  ]
+}

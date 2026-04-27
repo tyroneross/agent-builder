@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "agent-builder.local-llm-doe.v1",
+  "runCadence": "nightly",
+  "preferredLocalModel": "qwen3:8b-q4_K_M",
+  "interpretationMode": "cautious",
+  "replicateCount": 4,
+  "experiments": [
+    {
+      "track": "agent artifact quality",
+      "hypothesis": "Adding handoff and claim-table artifacts improves downstream agent recovery.",
+      "metric": "artifact validation score",
+      "effectSize": 5,
+      "replicates": 4,
+      "confidence": "medium",
+      "decision": "promote"
+    },
+    {
+      "track": "UI improvement",
+      "hypothesis": "A focused dashboard beats broad report output for morning review speed.",
+      "metric": "review steps to decision",
+      "effectSize": 2,
+      "replicates": 4,
+      "confidence": "medium",
+      "decision": "needs_repeat"
+    },
+    {
+      "track": "security and penetration-test simulation",
+      "hypothesis": "Sandbox and secret-handling checks should run before any generated patch is promoted.",
+      "metric": "critical finding count and false-positive review",
+      "effectSize": 4,
+      "replicates": 4,
+      "confidence": "medium",
+      "decision": "promote_guardrail"
+    },
+    {
+      "track": "product/customer update tailoring",
+      "hypothesis": "Customer-specific release notes improve usefulness when grounded in changed files and explicit assumptions.",
+      "metric": "accepted recommendations after human review",
+      "effectSize": 3,
+      "replicates": 4,
+      "confidence": "medium",
+      "decision": "needs_human_review"
+    }
+  ],
+  "smallModelCautions": [
+    "Do not infer a trend from one run.",
+    "Change at most four factors per nightly DOE.",
+    "Keep prompts short and artifact-specific.",
+    "Use confidence labels in every recommendation.",
+    "Repeat high-impact recommendations before promotion.",
+    "Separate measurement from interpretation.",
+    "Escalate security findings to a stronger reviewer before action."
+  ],
+  "promotionGate": {
+    "requiresRepeatedGuardPasses": true,
+    "requiresHumanApprovalForRepoWrites": true,
+    "requiresNoNewSecretExposure": true,
+    "requiresConfidenceAtLeast": "medium"
+  },
+  "morningRecommendationFormat": [
+    "repo",
+    "experiment",
+    "result",
+    "confidence",
+    "recommended action",
+    "files changed or artifacts produced",
+    "why not to trust this yet"
+  ]
+}

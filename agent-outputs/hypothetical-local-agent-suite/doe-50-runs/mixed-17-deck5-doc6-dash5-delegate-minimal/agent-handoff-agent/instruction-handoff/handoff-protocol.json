@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "agent-builder.agent-handoff.v1",
+  "format": "minimal",
+  "shareWhen": [
+    "before delegation",
+    "after tool output changes assumptions",
+    "before final artifact assembly",
+    "when uncertainty or permissions change"
+  ],
+  "shareWhat": [
+    "goal",
+    "inputs",
+    "constraints",
+    "accepted assumptions",
+    "source and claim state",
+    "expected artifacts",
+    "stop conditions",
+    "handoff owner"
+  ],
+  "doNotShare": [
+    "irrelevant transcript history",
+    "credentials or secrets",
+    "unverified claims without labels",
+    "tool permissions broader than the receiver needs"
+  ],
+  "template": [
+    "Goal",
+    "Inputs",
+    "Constraints",
+    "Expected output",
+    "Stop condition"
+  ]
+}

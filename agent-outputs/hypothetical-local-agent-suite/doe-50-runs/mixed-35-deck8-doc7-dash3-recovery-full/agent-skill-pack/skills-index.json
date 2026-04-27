@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "agent-builder.skill-pack.v1",
+  "purpose": "Reusable agent skills that make local agents faster, more accurate, and more honest.",
+  "skills": [
+    {
+      "id": "chief-of-staff.schedule-intake",
+      "path": "agent-skills/chief-of-staff/schedule-intake.skill.md",
+      "accelerates": "calendar parsing and missing-data checks"
+    },
+    {
+      "id": "chief-of-staff.100x-productivity-planning",
+      "path": "agent-skills/chief-of-staff/100x-productivity-planning.skill.md",
+      "accelerates": "strength-focused weekly planning"
+    },
+    {
+      "id": "shared.honesty-and-uncertainty",
+      "path": "agent-skills/shared/honesty-and-uncertainty.skill.md",
+      "accelerates": "truthful claims and uncertainty labels"
+    },
+    {
+      "id": "shared.artifact-safety",
+      "path": "agent-skills/shared/artifact-safety.skill.md",
+      "accelerates": "safe file generation and sandbox checks"
+    },
+    {
+      "id": "shared.local-model-routing",
+      "path": "agent-skills/shared/local-model-routing.skill.md",
+      "accelerates": "model selection by latency and quality"
+    },
+    {
+      "id": "shared.local-llm-doe",
+      "path": "agent-skills/shared/local-llm-doe.skill.md",
+      "accelerates": "small-model experiment design, replication, and cautious interpretation"
+    },
+    {
+      "id": "shared.claim-verification",
+      "path": "agent-skills/shared/claim-verification.skill.md",
+      "accelerates": "source-backed decks and accuracy reviews"
+    },
+    {
+      "id": "shared.document-structure",
+      "path": "agent-skills/shared/document-structure.skill.md",
+      "accelerates": "Word document sections, tables, and appendices"
+    }
+  ],
+  "promotionGate": {
+    "requiresMeasuredImprovement": true,
+    "requiresNoNewPermissionFailures": true,
+    "requiresRollbackNote": true
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "cards": [
+    {
+      "label": "Artifact score",
+      "value": 100,
+      "trend": "validated"
+    },
+    {
+      "label": "Office files",
+      "value": 3,
+      "trend": "pptx/docx/xlsx"
+    },
+    {
+      "label": "Security checks",
+      "value": "pass",
+      "trend": "no macros"
+    }
+  ],
+  "updated": "2026-04-27"
+}

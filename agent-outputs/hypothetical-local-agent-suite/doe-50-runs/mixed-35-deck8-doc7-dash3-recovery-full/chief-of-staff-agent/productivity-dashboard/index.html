@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chief of Staff Productivity Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f8fafc; color: #111827; }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px; }
+    h1 { font-size: 30px; margin: 0 0 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0; }
+    .card { background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 14px; }
+    .card span, .card small { display: block; color: #4b5563; }
+    .card strong { display: block; font-size: 26px; margin: 8px 0; }
+    table { border-collapse: collapse; width: 100%; background: white; border: 1px solid #d1d5db; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Chief of Staff Productivity Dashboard</h1>
+    <p>Strategy: recovery. Generated locally with no external scripts.</p>
+    <div class="grid"><section class="card"><span>Deep work hours</span><strong>8.5</strong><small>baseline: 2.0</small></section>
+<section class="card"><span>Context switches</span><strong>8</strong><small>baseline: 20</small></section>
+<section class="card"><span>Protected strength hours</span><strong>7.25</strong><small>baseline: 4.5</small></section>
+<section class="card"><span>Open-loop risk</span><strong>medium-low</strong><small>baseline: high</small></section>
+<section class="card"><span>Learning iterations</span><strong>3</strong><small>baseline: 0</small></section>
+<section class="card"><span>Chief of Staff subagents</span><strong>5</strong><small>baseline: 1</small></section></div>
+    <table><thead><tr><th>Day</th><th>Time</th><th>Mode</th><th>Why</th></tr></thead><tbody><tr><td>Monday</td><td>08:45-10:00</td><td>Leverage selection</td><td>Choose the few outcomes that multiply the week before meetings fragment attention.</td></tr>
+<tr><td>Monday</td><td>10:15-11:45</td><td>Protected build block</td><td>Ship one important thing before taking on more commitments.</td></tr>
+<tr><td>Wednesday</td><td>12:30-13:15</td><td>Recovery buffer</td><td>Protect energy so the week can sustain high-quality output.</td></tr>
+<tr><td>Tuesday</td><td>08:45-10:45</td><td>Research to decision</td><td>Convert research into decisions, not a larger reading queue.</td></tr>
+<tr><td>Wednesday</td><td>08:45-10:00</td><td>Creative system design</td><td>Protect your strength in synthesizing systems before the design direction meeting.</td></tr>
+<tr><td>Friday</td><td>09:00-10:00</td><td>Learning review</td><td>Promote lessons, remove stale commitments, and set next-week defaults.</td></tr>
+<tr><td>Friday</td><td>11:00-11:45</td><td>Delegation and follow-up batch</td><td>Compensate for open loops with one bounded owner/action pass.</td></tr></tbody></table>
+  </main>
+  <script>
+    const dashboardData = {"schemaVersion": "agent-builder.productivity-dashboard.v1", "profile": "mixed-35", "strategy": "recovery", "cards": [{"label": "Deep work hours", "value": 8.5, "baseline": 2.0}, {"label": "Context switches", "value": 8, "baseline": 20}, {"label": "Protected strength hours", "value": 7.25, "baseline": 4.5}, {"label": "Open-loop risk", "value": "medium-low", "baseline": "high"}, {"label": "Learning iterations", "value": 3, "baseline": 0}, {"label": "Chief of Staff subagents", "value": 5, "baseline": 1}], "blocks": [{"day": "Monday", "start": "08:45", "end": "10:00", "mode": "Leverage selection", "why": "Choose the few outcomes that multiply the week before meetings fragment attention."}, {"day": "Monday", "start": "10:15", "end": "11:45", "mode": "Protected build block", "why": "Ship one important thing before taking on more commitments."}, {"day": "Wednesday", "start": "12:30", "end": "13:15", "mode": "Recovery buffer", "why": "Protect energy so the week can sustain high-quality output."}, {"day": "Tuesday", "start": "08:45", "end": "10:45", "mode": "Research to decision", "why": "Convert research into decisions, not a larger reading queue."}, {"day": "Wednesday", "start": "08:45", "end": "10:00", "mode": "Creative system design", "why": "Protect your strength in synthesizing systems before the design direction meeting."}, {"day": "Friday", "start": "09:00", "end": "10:00", "mode": "Learning review", "why": "Promote lessons, remove stale commitments, and set next-week defaults."}, {"day": "Friday", "start": "11:00", "end": "11:45", "mode": "Delegation and follow-up batch", "why": "Compensate for open loops with one bounded owner/action pass."}]};
+    console.log("productivity dashboard", dashboardData);
+  </script>
+</body>
+</html>

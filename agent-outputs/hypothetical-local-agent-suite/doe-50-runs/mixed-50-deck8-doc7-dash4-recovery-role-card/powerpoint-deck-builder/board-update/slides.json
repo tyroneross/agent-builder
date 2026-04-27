@@ -1,0 +1,63 @@
+{
+  "slides": [
+    {
+      "title": "Local Agent Builder",
+      "bullets": [
+        "Actual output run",
+        "Repo-constrained artifacts",
+        "No downloads"
+      ]
+    },
+    {
+      "title": "What Changed",
+      "bullets": [
+        "Agents emit docx, pptx, xlsx, html, json, and markdown",
+        "Artifacts are validated for macros and external relationships"
+      ]
+    },
+    {
+      "title": "Domain Learning",
+      "bullets": [
+        "Scenario results feed a learning ledger",
+        "Accepted lessons require rollback rules"
+      ]
+    },
+    {
+      "title": "Security Boundary",
+      "bullets": [
+        "Writes stay under agent-outputs",
+        "No executable outputs",
+        "No external package downloads"
+      ]
+    },
+    {
+      "title": "Model Experiment",
+      "bullets": [
+        "Model calls skipped for deterministic test run"
+      ]
+    },
+    {
+      "title": "Research Accuracy",
+      "bullets": [
+        "Claims move through source, confidence, and accuracy review tables",
+        "Research depth factor: 5"
+      ]
+    },
+    {
+      "title": "DOE Result",
+      "bullets": [
+        "Deck depth, document depth, and dashboard depth were varied",
+        "Best setting uses richer artifacts with security pack"
+      ]
+    },
+    {
+      "title": "Decision",
+      "bullets": [
+        "Keep real-output artifact runner",
+        "Chunk long local model validation",
+        "Promote passing artifacts into the UI build flow"
+      ]
+    }
+  ],
+  "profile": "mixed-50"
+}

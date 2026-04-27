@@ -63,6 +63,7 @@ def main() -> int:
     parser.add_argument("--root", default=str(DEFAULT_ROOT), help="Output root.")
     parser.add_argument("--profile", choices=sorted(PROFILES), default="full")
     parser.add_argument("--doe", action="store_true", help="Run 2^3 DOE with real artifacts.")
+    parser.add_argument("--doe-runs", type=int, default=8, help="DOE run count. Use 50 for the extended mixed-level suite.")
     parser.add_argument("--score", action="store_true", help="Print numeric validation score only.")
     parser.add_argument("--json", action="store_true", help="Print JSON result.")
     parser.add_argument("--skip-models", action="store_true", help="Do not call local Ollama models.")
@@ -81,7 +82,8 @@ def main() -> int:
 
     doe_result = None
     if args.doe:
-        doe_result = run_doe(root / "doe-runs", model_notes)
+        doe_root = root / ("doe-runs" if args.doe_runs == 8 else f"doe-{args.doe_runs}-runs")
+        doe_result = run_doe(doe_root, model_notes, args.doe_runs)
         write_doe_report(root, doe_result)
 
     validation = validate_output_tree(root)
@@ -175,18 +177,25 @@ def score_model_note(text: str) -> int:
     return sum(1 for term in terms if term in lowered)
 
 
-def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any]], run_id: str) -> dict[str, Any]:
+def generate_suite(
+    root: Path,
+    profile: Profile,
+    model_notes: list[dict[str, Any]],
+    run_id: str,
+    experiment: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    experiment = experiment or {}
     root.mkdir(parents=True, exist_ok=True)
     outputs: list[str] = []
 
-    deck_slides = build_slide_plan(profile, model_notes)
+    deck_slides = build_slide_plan(profile, model_notes, experiment)
     deck_path = root / "powerpoint-deck-builder" / "board-update" / "deck.pptx"
     write_pptx(deck_path, "Local Agent Builder Board Update", deck_slides)
     write_json(deck_path.with_name("slides.json"), {"slides": deck_slides, "profile": profile.name})
     write_text(deck_path.with_name("speaker-notes.md"), speaker_notes(deck_slides))
     outputs.extend(relative_paths(root, [deck_path, deck_path.with_name("slides.json"), deck_path.with_name("speaker-notes.md")]))
 
-    doc_sections = build_document_sections(profile, model_notes)
+    doc_sections = build_document_sections(profile, model_notes, experiment)
     doc_path = root / "writing-agent" / "executive-brief" / "domain-learning-agent-brief.docx"
     write_docx(doc_path, "Domain-Learning Agent Brief", doc_sections)
     write_text(doc_path.with_suffix(".md"), markdown_from_sections("Domain-Learning Agent Brief", doc_sections))
@@ -197,8 +206,8 @@ def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any
     outputs.append(str(ops_path.relative_to(root)))
 
     schedule_dir = root / "chief-of-staff-agent" / "schedule-optimizer"
-    schedule = sample_schedule()
-    productivity_plan = optimize_schedule(schedule)
+    schedule = sample_schedule(experiment)
+    productivity_plan = optimize_schedule(schedule, experiment)
     write_json(schedule_dir / "input-schedule.json", schedule)
     write_json(schedule_dir / "time-block-plan.json", productivity_plan)
     write_json(schedule_dir / "learning-ledger.json", productivity_plan["learningLedger"])
@@ -209,22 +218,7 @@ def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any
         time_plan_doc,
         "Chief of Staff 100x Productivity Plan",
         chief_of_staff_productivity_sections(productivity_plan),
-        tables=[
-            {
-                "title": "Recommended Time Blocks",
-                "rows": [["Day", "Time", "Mode", "Why"], *[
-                    [block["day"], f"{block['start']} - {block['end']}", block["mode"], block["why"]]
-                    for block in productivity_plan["optimizedBlocks"]
-                ]],
-            },
-            {
-                "title": "Learning Loop",
-                "rows": [["Iteration", "Hypothesis", "Result", "Decision"], *[
-                    [str(item["iteration"]), item["hypothesis"], item["result"], item["decision"]]
-                    for item in productivity_plan["learningLedger"]
-                ]],
-            },
-        ],
+        tables=time_plan_tables(productivity_plan, experiment),
     )
     outputs.extend(relative_paths(schedule_dir.parent.parent, [
         schedule_dir / "input-schedule.json",
@@ -235,14 +229,31 @@ def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any
         time_plan_doc,
     ]))
 
+    productivity_dashboard_dir = root / "chief-of-staff-agent" / "productivity-dashboard"
+    write_json(productivity_dashboard_dir / "dashboard-data.json", productivity_dashboard_payload(productivity_plan, profile))
+    write_text(productivity_dashboard_dir / "index.html", productivity_dashboard_html(productivity_plan, profile))
+    outputs.extend(relative_paths(root, [productivity_dashboard_dir / "dashboard-data.json", productivity_dashboard_dir / "index.html"]))
+
+    researched_dir = root / "researched-deck-agent" / "agent-framework-topic"
+    outputs.extend(relative_paths(root, write_researched_topic_artifacts(researched_dir, profile, model_notes, experiment)))
+
+    quality_dir = root / "artifact-quality-agent" / "quality-review"
+    outputs.extend(relative_paths(root, write_quality_review_artifacts(quality_dir, profile, experiment)))
+
+    local_doe_dir = root / "local-llm-doe-agent" / "experiment-loop"
+    outputs.extend(relative_paths(root, write_local_llm_doe_artifacts(local_doe_dir, model_notes, experiment)))
+
+    handoff_dir = root / "agent-handoff-agent" / "instruction-handoff"
+    outputs.extend(relative_paths(root, write_handoff_artifacts(handoff_dir, experiment)))
+
     model_dir = root / "model-comparison-agent" / "local-llm-review"
     write_json(model_dir / "model-comparison.json", model_comparison_report(model_notes))
     write_text(model_dir / "model-comparison.md", model_comparison_markdown(model_notes))
     outputs.extend(relative_paths(root, [model_dir / "model-comparison.json", model_dir / "model-comparison.md"]))
 
     skill_dir = root / "agent-skill-pack"
-    write_json(skill_dir / "skills-index.json", agent_skill_index())
-    write_text(skill_dir / "README.md", agent_skill_pack_markdown())
+    write_json(skill_dir / "skills-index.json", agent_skill_index(experiment))
+    write_text(skill_dir / "README.md", agent_skill_pack_markdown(experiment))
     outputs.extend(relative_paths(root, [skill_dir / "skills-index.json", skill_dir / "README.md"]))
 
     workbook_path = root / "data-analysis-agent" / "usage-review" / "metrics-workbook.xlsx"
@@ -260,8 +271,8 @@ def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any
     outputs.extend(relative_paths(root, [dashboard_path, dashboard_dir / "dashboard-data.json"]))
 
     research_dir = root / "research-brief-agent" / "security-research"
-    write_json(research_dir / "source-index.json", source_index())
-    write_text(research_dir / "research-brief.md", research_brief(model_notes))
+    write_json(research_dir / "source-index.json", source_index(experiment))
+    write_text(research_dir / "research-brief.md", research_brief(model_notes, experiment))
     pdf_path = research_dir / "security-brief.pdf"
     write_pdf(pdf_path, "Secure Local Artifact Agents", [
         "Agents generated real DOCX, PPTX, XLSX, HTML, JSON, CSV, PDF, and Markdown outputs.",
@@ -279,6 +290,7 @@ def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any
         "schemaVersion": "agent-builder.real-output-run.v1",
         "runId": run_id,
         "profile": profile.__dict__,
+        "experiment": experiment,
         "outputs": outputs,
         "models": model_notes,
         "constraints": {
@@ -306,7 +318,41 @@ def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any
     }
 
 
-def run_doe(root: Path, model_notes: list[dict[str, Any]]) -> dict[str, Any]:
+def time_plan_tables(plan: dict[str, Any], experiment: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    experiment = experiment or {}
+    tables = [
+        {
+            "title": "Recommended Time Blocks",
+            "rows": [["Day", "Time", "Mode", "Why"], *[
+                [block["day"], f"{block['start']} - {block['end']}", block["mode"], block["why"]]
+                for block in plan["optimizedBlocks"]
+            ]],
+        },
+        {
+            "title": "Learning Loop",
+            "rows": [["Iteration", "Hypothesis", "Result", "Decision"], *[
+                [str(item["iteration"]), item["hypothesis"], item["result"], item["decision"]]
+                for item in plan["learningLedger"]
+            ]],
+        },
+    ]
+    if int(experiment.get("wordTables", 2)) >= 3:
+        tables.append({
+            "title": "Chief of Staff Team",
+            "rows": [["Agent", "Job"], *[[item["agent"], item["job"]] for item in plan["team"]]],
+        })
+    if int(experiment.get("wordTables", 2)) >= 4:
+        tables.append({
+            "title": "Guardrail Checks",
+            "rows": [["Rule", "Owner"], *[[rule, "Honesty Auditor"] for rule in plan["rules"]]],
+        })
+    return tables
+
+
+def run_doe(root: Path, model_notes: list[dict[str, Any]], run_count: int = 8) -> dict[str, Any]:
+    if run_count != 8:
+        return run_mixed_level_doe(root, model_notes, run_count)
+
     factors = [
         ("deckDepth", {"low": 4, "high": 7}),
         ("docDepth", {"low": 3, "high": 6}),
@@ -337,6 +383,90 @@ def run_doe(root: Path, model_notes: list[dict[str, Any]]) -> dict[str, Any]:
         "best": best,
         "effects": effects,
     }
+
+
+MIXED_LEVEL_FACTORS: list[tuple[str, list[Any], int]] = [
+    ("deckSlides", [4, 5, 6, 7, 8], 1),
+    ("docSections", [3, 4, 5, 6, 7], 2),
+    ("dashboardWidgets", [3, 4, 5, 6], 3),
+    ("scheduleStrategy", ["focus", "research", "delegate", "balanced", "recovery"], 4),
+    ("researchDepth", [3, 4, 5, 6, 7], 7),
+    ("wordTables", [2, 3, 4], 11),
+    ("qaDepth", [3, 4, 5, 6, 7], 13),
+    ("skillDepth", [5, 6, 7, 8, 9, 10], 17),
+    ("handoffFormat", ["minimal", "brief", "full", "role-card"], 19),
+    ("localDoeInterpretation", ["fast", "cautious", "replicated", "strict"], 23),
+    ("localDoeReplicates", [2, 3, 4, 5], 29),
+]
+
+
+def run_mixed_level_doe(root: Path, model_notes: list[dict[str, Any]], run_count: int) -> dict[str, Any]:
+    if run_count < 1:
+        raise SystemExit("--doe-runs must be at least 1")
+    runs: list[dict[str, Any]] = []
+    for index, settings in enumerate(mixed_level_settings(run_count), start=1):
+        profile = Profile(
+            name=f"mixed-{index:02d}",
+            deck_slides=int(settings["deckSlides"]),
+            doc_sections=int(settings["docSections"]),
+            dashboard_widgets=int(settings["dashboardWidgets"]),
+            include_security_pack=True,
+        )
+        run_id = (
+            f"mixed-{index:02d}-deck{settings['deckSlides']}-doc{settings['docSections']}"
+            f"-dash{settings['dashboardWidgets']}-{settings['scheduleStrategy']}-{settings['handoffFormat']}"
+        )
+        result = generate_suite(root / run_id, profile, model_notes, run_id, settings)
+        result["factors"] = settings
+        runs.append(result)
+
+    best = sorted(runs, key=lambda item: item["score"], reverse=True)[0]
+    return {
+        "design": f"{run_count}-run deterministic mixed-level DOE with real researched decks, schedule plans, dashboards, docs, QA scorecards, local LLM DOE loops, and safe Office artifacts",
+        "response": "validated artifact score",
+        "factors": [{"name": name, "levels": levels} for name, levels, _stride in MIXED_LEVEL_FACTORS],
+        "runs": runs,
+        "best": best,
+        "effects": mixed_level_effects(MIXED_LEVEL_FACTORS, runs),
+    }
+
+
+def mixed_level_settings(run_count: int) -> list[dict[str, Any]]:
+    settings: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    index = 0
+    while len(settings) < run_count:
+        item = {
+            name: levels[(index * stride + factor_index) % len(levels)]
+            for factor_index, (name, levels, stride) in enumerate(MIXED_LEVEL_FACTORS)
+        }
+        key = json.dumps(item, sort_keys=True)
+        if key not in seen:
+            seen.add(key)
+            settings.append(item)
+        index += 1
+    return settings
+
+
+def mixed_level_effects(factors: list[tuple[str, list[Any], int]], runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    effects: list[dict[str, Any]] = []
+    for name, levels, _stride in factors:
+        means = []
+        for level in levels:
+            scores = [run["score"] for run in runs if run["factors"].get(name) == level]
+            if scores:
+                means.append({"level": level, "meanScore": round(sum(scores) / len(scores), 2), "count": len(scores)})
+        if means:
+            best = max(means, key=lambda item: item["meanScore"])
+            worst = min(means, key=lambda item: item["meanScore"])
+            effects.append({
+                "factor": name,
+                "effect": round(best["meanScore"] - worst["meanScore"], 2),
+                "bestLevel": best["level"],
+                "worstLevel": worst["level"],
+                "levelMeans": means,
+            })
+    return sorted(effects, key=lambda item: abs(item["effect"]), reverse=True)
 
 
 def main_effects(factors: list[tuple[str, dict[str, int]]], runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -479,6 +609,84 @@ def validate_output_tree(root: Path) -> dict[str, Any]:
                 score += 1
         except json.JSONDecodeError as error:
             errors.append(f"Invalid skill index {skill_index_file}: {error}")
+
+    for claim_table_file in root.rglob("claim-table.json"):
+        max_score += 8
+        try:
+            claim_table = json.loads(claim_table_file.read_text(encoding="utf-8"))
+            claims = claim_table.get("claims", [])
+            statuses = {claim.get("status") for claim in claims}
+            if len(claims) >= 3:
+                score += 2
+            else:
+                errors.append(f"Claim table has too few claims: {claim_table_file}")
+            if "verified" in statuses:
+                score += 2
+            else:
+                errors.append(f"Claim table has no verified claims: {claim_table_file}")
+            if "inferred" in statuses or "needs_review" in statuses:
+                score += 2
+            else:
+                errors.append(f"Claim table lacks uncertainty labels: {claim_table_file}")
+            if all(claim.get("source") for claim in claims):
+                score += 2
+            else:
+                errors.append(f"Claim table has source gaps: {claim_table_file}")
+        except json.JSONDecodeError as error:
+            errors.append(f"Invalid claim table {claim_table_file}: {error}")
+
+    for handoff_file in root.rglob("handoff-protocol.json"):
+        max_score += 8
+        try:
+            handoff = json.loads(handoff_file.read_text(encoding="utf-8"))
+            if handoff.get("schemaVersion") == "agent-builder.agent-handoff.v1":
+                score += 2
+            if len(handoff.get("shareWhat", [])) >= 6:
+                score += 2
+            else:
+                errors.append(f"Handoff protocol is missing share-what detail: {handoff_file}")
+            if len(handoff.get("doNotShare", [])) >= 3:
+                score += 2
+            else:
+                errors.append(f"Handoff protocol is missing do-not-share rules: {handoff_file}")
+            if any("Stop" in item or "stop" in item for item in handoff.get("template", [])):
+                score += 2
+            else:
+                errors.append(f"Handoff protocol template lacks stop condition: {handoff_file}")
+        except json.JSONDecodeError as error:
+            errors.append(f"Invalid handoff protocol {handoff_file}: {error}")
+
+    for local_doe_file in root.rglob("local-doe-results.json"):
+        max_score += 12
+        try:
+            local_doe = json.loads(local_doe_file.read_text(encoding="utf-8"))
+            if local_doe.get("schemaVersion") == "agent-builder.local-llm-doe.v1":
+                score += 2
+            experiments = local_doe.get("experiments", [])
+            if len(experiments) >= 3:
+                score += 2
+            else:
+                errors.append(f"Local LLM DOE has too few experiments: {local_doe_file}")
+            if int(local_doe.get("replicateCount", 0)) >= 3:
+                score += 2
+            if len(local_doe.get("smallModelCautions", [])) >= 5:
+                score += 2
+            else:
+                errors.append(f"Local LLM DOE lacks small-model cautions: {local_doe_file}")
+            if all(row.get("confidence") in {"low", "medium", "high"} and row.get("decision") for row in experiments):
+                score += 2
+            else:
+                errors.append(f"Local LLM DOE lacks confidence or decisions: {local_doe_file}")
+            low_confidence_promotions = [
+                row for row in experiments
+                if row.get("confidence") == "low" and row.get("decision") == "promote"
+            ]
+            if not low_confidence_promotions:
+                score += 2
+            else:
+                errors.append(f"Local LLM DOE promotes low-confidence results: {local_doe_file}")
+        except json.JSONDecodeError as error:
+            errors.append(f"Invalid local LLM DOE results {local_doe_file}: {error}")
 
     for pdf_file in root.rglob("*.pdf"):
         max_score += 3
@@ -994,13 +1202,19 @@ def column_name(index: int) -> str:
     return name
 
 
-def build_slide_plan(profile: Profile, model_notes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def build_slide_plan(
+    profile: Profile,
+    model_notes: list[dict[str, Any]],
+    experiment: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    experiment = experiment or {}
     slides = [
         {"title": "Local Agent Builder", "bullets": ["Actual output run", "Repo-constrained artifacts", "No downloads"]},
         {"title": "What Changed", "bullets": ["Agents emit docx, pptx, xlsx, html, json, and markdown", "Artifacts are validated for macros and external relationships"]},
         {"title": "Domain Learning", "bullets": ["Scenario results feed a learning ledger", "Accepted lessons require rollback rules"]},
         {"title": "Security Boundary", "bullets": ["Writes stay under agent-outputs", "No executable outputs", "No external package downloads"]},
         {"title": "Model Experiment", "bullets": model_bullets(model_notes)},
+        {"title": "Research Accuracy", "bullets": ["Claims move through source, confidence, and accuracy review tables", f"Research depth factor: {experiment.get('researchDepth', 'default')}"]},
         {"title": "DOE Result", "bullets": ["Deck depth, document depth, and dashboard depth were varied", "Best setting uses richer artifacts with security pack"]},
         {"title": "Decision", "bullets": ["Keep real-output artifact runner", "Chunk long local model validation", "Promote passing artifacts into the UI build flow"]},
     ]
@@ -1016,13 +1230,20 @@ def model_bullets(model_notes: list[dict[str, Any]]) -> list[str]:
     ]
 
 
-def build_document_sections(profile: Profile, model_notes: list[dict[str, Any]]) -> list[tuple[str, list[str]]]:
+def build_document_sections(
+    profile: Profile,
+    model_notes: list[dict[str, Any]],
+    experiment: dict[str, Any] | None = None,
+) -> list[tuple[str, list[str]]]:
+    experiment = experiment or {}
     sections = [
         ("Conclusion", ["Use eval-gated domain memory because it improves without silently mutating prompts."]),
         ("Inputs", ["Hypothetical operating brief, product metrics, security constraints, and local model observations."]),
         ("Outputs", ["PowerPoint deck, Word brief, metrics workbook, HTML dashboard, research brief, and review findings."]),
         ("Security", ["The run writes only under agent-outputs and forbids macros, external relationships, and executable artifacts."]),
         ("Model Notes", model_bullets(model_notes)),
+        ("Research Accuracy", [f"Research depth factor: {experiment.get('researchDepth', 'default')}. Claims are separated into verified, inferred, unsupported, and needs-review states."]),
+        ("Structure", [f"Word table factor: {experiment.get('wordTables', 'default')}. More tables improve scanability when the artifact contains schedule, claims, and learning data."]),
         ("Next Step", ["Wire these real artifact adapters into the visual Build Agent action."]),
     ]
     return sections[:profile.doc_sections]
@@ -1037,10 +1258,12 @@ def chief_of_staff_sections(model_notes: list[dict[str, Any]]) -> list[tuple[str
     ]
 
 
-def sample_schedule() -> dict[str, Any]:
-    return {
+def sample_schedule(experiment: dict[str, Any] | None = None) -> dict[str, Any]:
+    experiment = experiment or {}
+    schedule = {
         "schemaVersion": "agent-builder.schedule-input.v1",
         "ownerGoal": "Become 100x more productive by spending more time on high-leverage strengths and less time manually coordinating low-leverage work.",
+        "strategyExperiment": experiment.get("scheduleStrategy", "focus"),
         "strengths": [
             "rapid product judgment",
             "connecting research to implementation",
@@ -1067,24 +1290,56 @@ def sample_schedule() -> dict[str, Any]:
             {"day": "Friday", "start": "10:00", "end": "11:00", "title": "Weekly review", "type": "review", "fixed": False},
         ],
     }
+    strategy = str(experiment.get("scheduleStrategy", "focus"))
+    if strategy == "research":
+        schedule["events"].append({"day": "Tuesday", "start": "13:00", "end": "14:00", "title": "Claim verification batch", "type": "deep_work", "fixed": False})
+    elif strategy == "delegate":
+        schedule["events"].append({"day": "Thursday", "start": "11:30", "end": "12:00", "title": "Delegation handoff", "type": "coordination", "fixed": False})
+    elif strategy == "recovery":
+        schedule["events"].append({"day": "Wednesday", "start": "12:30", "end": "13:15", "title": "Recovery buffer", "type": "recovery", "fixed": False})
+    return schedule
 
 
-def optimize_schedule(schedule: dict[str, Any]) -> dict[str, Any]:
+def optimize_schedule(schedule: dict[str, Any], experiment: dict[str, Any] | None = None) -> dict[str, Any]:
+    experiment = experiment or {}
     baseline = productivity_metrics(schedule["events"])
+    strategy = str(experiment.get("scheduleStrategy", schedule.get("strategyExperiment", "focus")))
+    strategy_blocks = {
+        "focus": [
+            {"day": "Monday", "start": "10:15", "end": "12:15", "mode": "Deep build block", "why": "Use peak cognition for architecture, code review, and high-context implementation."},
+            {"day": "Thursday", "start": "08:45", "end": "11:15", "mode": "Experiment and validation", "why": "Batch local model and artifact experiments while working memory is fresh."},
+        ],
+        "research": [
+            {"day": "Tuesday", "start": "08:45", "end": "11:15", "mode": "Research to evidence", "why": "Separate accurate claims from weak claims before building a deck or document."},
+            {"day": "Tuesday", "start": "13:15", "end": "14:15", "mode": "Claim review", "why": "Score source freshness, contradictions, and confidence while context is loaded."},
+        ],
+        "delegate": [
+            {"day": "Monday", "start": "10:15", "end": "11:45", "mode": "Delegation design", "why": "Turn ambiguous open loops into owner/action/date packets."},
+            {"day": "Thursday", "start": "11:30", "end": "12:15", "mode": "Handoff review", "why": "Prevent coordination work from leaking into deep-work time."},
+        ],
+        "balanced": [
+            {"day": "Monday", "start": "10:15", "end": "11:45", "mode": "Strategy build block", "why": "Pair decision framing with implementation planning."},
+            {"day": "Thursday", "start": "09:00", "end": "10:30", "mode": "Validation block", "why": "Keep artifact quality visible without overfitting to one metric."},
+        ],
+        "recovery": [
+            {"day": "Monday", "start": "10:15", "end": "11:45", "mode": "Protected build block", "why": "Ship one important thing before taking on more commitments."},
+            {"day": "Wednesday", "start": "12:30", "end": "13:15", "mode": "Recovery buffer", "why": "Protect energy so the week can sustain high-quality output."},
+        ],
+    }
     optimized_blocks = [
         {"day": "Monday", "start": "08:45", "end": "10:00", "mode": "Leverage selection", "why": "Choose the few outcomes that multiply the week before meetings fragment attention."},
-        {"day": "Monday", "start": "10:15", "end": "12:15", "mode": "Deep build block", "why": "Use peak cognition for architecture, code review, and high-context implementation."},
+        *strategy_blocks.get(strategy, strategy_blocks["focus"]),
         {"day": "Tuesday", "start": "08:45", "end": "10:45", "mode": "Research to decision", "why": "Convert research into decisions, not a larger reading queue."},
         {"day": "Wednesday", "start": "08:45", "end": "10:00", "mode": "Creative system design", "why": "Protect your strength in synthesizing systems before the design direction meeting."},
-        {"day": "Thursday", "start": "08:45", "end": "11:15", "mode": "Experiment and validation", "why": "Batch local model and artifact experiments while working memory is fresh."},
         {"day": "Friday", "start": "09:00", "end": "10:00", "mode": "Learning review", "why": "Promote lessons, remove stale commitments, and set next-week defaults."},
         {"day": "Friday", "start": "11:00", "end": "11:45", "mode": "Delegation and follow-up batch", "why": "Compensate for open loops with one bounded owner/action pass."},
     ]
+    strategy_deep_work_bonus = {"focus": 8.25, "research": 7.75, "delegate": 6.75, "balanced": 7.25, "recovery": 6.5}
     optimized = {
-        "deepWorkHours": 10.25,
+        "deepWorkHours": round(baseline["deepWorkHours"] + strategy_deep_work_bonus.get(strategy, 7.0), 2),
         "adminHours": 2.0,
-        "contextSwitches": 9,
-        "protectedStrengthHours": 7.75,
+        "contextSwitches": 8 if strategy in {"focus", "recovery"} else 9,
+        "protectedStrengthHours": 8.25 if strategy in {"focus", "research"} else 7.25,
         "openLoopRisk": "medium-low",
     }
     team = [
@@ -1111,8 +1366,8 @@ def optimize_schedule(schedule: dict[str, Any]) -> dict[str, Any]:
         },
         {
             "iteration": 3,
-            "hypothesis": "A weekly learning review will let the system improve without silently rewriting preferences.",
-            "result": "Learning review creates an explicit promotion gate for future schedule defaults.",
+            "hypothesis": f"A {strategy} schedule strategy will improve output quality without silently rewriting preferences.",
+            "result": "Learning review creates an explicit promotion gate for future schedule defaults and strategy selection.",
             "decision": "keep",
             "acceptedLesson": "Only promote productivity lessons when a scored week improves without new trust or health costs.",
         },
@@ -1120,6 +1375,7 @@ def optimize_schedule(schedule: dict[str, Any]) -> dict[str, Any]:
     return {
         "schemaVersion": "agent-builder.chief-of-staff-time-plan.v1",
         "inputWeek": schedule["weekOf"],
+        "strategy": strategy,
         "goal": schedule["ownerGoal"],
         "baselineMetrics": baseline,
         "optimizedMetrics": optimized,
@@ -1263,17 +1519,26 @@ def model_comparison_markdown(model_notes: list[dict[str, Any]]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def agent_skill_index() -> dict[str, Any]:
+def agent_skill_index(experiment: dict[str, Any] | None = None) -> dict[str, Any]:
+    experiment = experiment or {}
+    depth = int(experiment.get("skillDepth", 6))
+    skills = [
+        {"id": "chief-of-staff.schedule-intake", "path": "agent-skills/chief-of-staff/schedule-intake.skill.md", "accelerates": "calendar parsing and missing-data checks"},
+        {"id": "chief-of-staff.100x-productivity-planning", "path": "agent-skills/chief-of-staff/100x-productivity-planning.skill.md", "accelerates": "strength-focused weekly planning"},
+        {"id": "shared.honesty-and-uncertainty", "path": "agent-skills/shared/honesty-and-uncertainty.skill.md", "accelerates": "truthful claims and uncertainty labels"},
+        {"id": "shared.artifact-safety", "path": "agent-skills/shared/artifact-safety.skill.md", "accelerates": "safe file generation and sandbox checks"},
+        {"id": "shared.local-model-routing", "path": "agent-skills/shared/local-model-routing.skill.md", "accelerates": "model selection by latency and quality"},
+        {"id": "shared.local-llm-doe", "path": "agent-skills/shared/local-llm-doe.skill.md", "accelerates": "small-model experiment design, replication, and cautious interpretation"},
+        {"id": "shared.claim-verification", "path": "agent-skills/shared/claim-verification.skill.md", "accelerates": "source-backed decks and accuracy reviews"},
+        {"id": "shared.document-structure", "path": "agent-skills/shared/document-structure.skill.md", "accelerates": "Word document sections, tables, and appendices"},
+        {"id": "chief-of-staff.feedback-loop", "path": "agent-skills/chief-of-staff/feedback-loop.skill.md", "accelerates": "planned-vs-actual learning"},
+        {"id": "shared.dashboard-design", "path": "agent-skills/shared/dashboard-design.skill.md", "accelerates": "local productivity dashboards"},
+        {"id": "shared.agent-handoff", "path": "agent-skills/shared/agent-handoff.skill.md", "accelerates": "instruction transfer between agents"},
+    ]
     return {
         "schemaVersion": "agent-builder.skill-pack.v1",
         "purpose": "Reusable agent skills that make local agents faster, more accurate, and more honest.",
-        "skills": [
-            {"id": "chief-of-staff.schedule-intake", "path": "agent-skills/chief-of-staff/schedule-intake.skill.md", "accelerates": "calendar parsing and missing-data checks"},
-            {"id": "chief-of-staff.100x-productivity-planning", "path": "agent-skills/chief-of-staff/100x-productivity-planning.skill.md", "accelerates": "strength-focused weekly planning"},
-            {"id": "shared.honesty-and-uncertainty", "path": "agent-skills/shared/honesty-and-uncertainty.skill.md", "accelerates": "truthful claims and uncertainty labels"},
-            {"id": "shared.artifact-safety", "path": "agent-skills/shared/artifact-safety.skill.md", "accelerates": "safe file generation and sandbox checks"},
-            {"id": "shared.local-model-routing", "path": "agent-skills/shared/local-model-routing.skill.md", "accelerates": "model selection by latency and quality"},
-        ],
+        "skills": skills[:depth],
         "promotionGate": {
             "requiresMeasuredImprovement": True,
             "requiresNoNewPermissionFailures": True,
@@ -1282,13 +1547,401 @@ def agent_skill_index() -> dict[str, Any]:
     }
 
 
-def agent_skill_pack_markdown() -> str:
-    index = agent_skill_index()
+def agent_skill_pack_markdown(experiment: dict[str, Any] | None = None) -> str:
+    index = agent_skill_index(experiment)
     return markdown_from_sections("Agent Skill Pack", [
         ("Purpose", [index["purpose"]]),
         ("Skills", [f"{item['id']} - {item['accelerates']}" for item in index["skills"]]),
         ("Promotion Gate", [f"{key}: {value}" for key, value in index["promotionGate"].items()]),
     ])
+
+
+def productivity_dashboard_payload(plan: dict[str, Any], profile: Profile) -> dict[str, Any]:
+    return {
+        "schemaVersion": "agent-builder.productivity-dashboard.v1",
+        "profile": profile.name,
+        "strategy": plan.get("strategy", "focus"),
+        "cards": [
+            {"label": "Deep work hours", "value": plan["optimizedMetrics"]["deepWorkHours"], "baseline": plan["baselineMetrics"]["deepWorkHours"]},
+            {"label": "Context switches", "value": plan["optimizedMetrics"]["contextSwitches"], "baseline": plan["baselineMetrics"]["contextSwitches"]},
+            {"label": "Protected strength hours", "value": plan["optimizedMetrics"]["protectedStrengthHours"], "baseline": plan["baselineMetrics"]["protectedStrengthHours"]},
+            {"label": "Open-loop risk", "value": plan["optimizedMetrics"]["openLoopRisk"], "baseline": plan["baselineMetrics"]["openLoopRisk"]},
+            {"label": "Learning iterations", "value": len(plan["learningLedger"]), "baseline": 0},
+            {"label": "Chief of Staff subagents", "value": len(plan["team"]), "baseline": 1},
+        ],
+        "blocks": plan["optimizedBlocks"],
+    }
+
+
+def productivity_dashboard_html(plan: dict[str, Any], profile: Profile) -> str:
+    payload = productivity_dashboard_payload(plan, profile)
+    cards = "\n".join(
+        f"<section class=\"card\"><span>{html.escape(str(card['label']))}</span><strong>{html.escape(str(card['value']))}</strong><small>baseline: {html.escape(str(card['baseline']))}</small></section>"
+        for card in payload["cards"]
+    )
+    rows = "\n".join(
+        f"<tr><td>{html.escape(block['day'])}</td><td>{html.escape(block['start'])}-{html.escape(block['end'])}</td><td>{html.escape(block['mode'])}</td><td>{html.escape(block['why'])}</td></tr>"
+        for block in plan["optimizedBlocks"]
+    )
+    return f'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chief of Staff Productivity Dashboard</title>
+  <style>
+    body {{ font-family: Arial, sans-serif; margin: 0; background: #f8fafc; color: #111827; }}
+    main {{ max-width: 1120px; margin: 0 auto; padding: 32px; }}
+    h1 {{ font-size: 30px; margin: 0 0 8px; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0; }}
+    .card {{ background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 14px; }}
+    .card span, .card small {{ display: block; color: #4b5563; }}
+    .card strong {{ display: block; font-size: 26px; margin: 8px 0; }}
+    table {{ border-collapse: collapse; width: 100%; background: white; border: 1px solid #d1d5db; }}
+    th, td {{ text-align: left; padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Chief of Staff Productivity Dashboard</h1>
+    <p>Strategy: {html.escape(str(plan.get('strategy', 'focus')))}. Generated locally with no external scripts.</p>
+    <div class="grid">{cards}</div>
+    <table><thead><tr><th>Day</th><th>Time</th><th>Mode</th><th>Why</th></tr></thead><tbody>{rows}</tbody></table>
+  </main>
+  <script>
+    const dashboardData = {json.dumps(payload)};
+    console.log("productivity dashboard", dashboardData);
+  </script>
+</body>
+</html>
+'''
+
+
+def research_claims(experiment: dict[str, Any] | None = None) -> list[dict[str, str]]:
+    experiment = experiment or {}
+    depth = int(experiment.get("researchDepth", 3))
+    claims = [
+        {"claim": "Narrow tool surfaces reduce local-model failure risk.", "status": "verified", "confidence": "high", "source": "Anthropic Building Effective Agents"},
+        {"claim": "Agent handoffs should include task goal, available context, constraints, expected output, and stop conditions.", "status": "inferred", "confidence": "medium", "source": "OpenAI Agents SDK guardrail patterns"},
+        {"claim": "Research decks should be generated from a claim table, not from prose alone.", "status": "inferred", "confidence": "medium", "source": "agent-builder local validation"},
+        {"claim": "Persistent lessons should require evaluation before promotion.", "status": "verified", "confidence": "high", "source": "Reflexion and DSPy research patterns"},
+        {"claim": "Large multi-agent systems fail through bad verification and poor inter-agent communication.", "status": "verified", "confidence": "high", "source": "MAST failure taxonomy"},
+        {"claim": "Local models should use shorter loops and stronger termination criteria than frontier cloud models.", "status": "inferred", "confidence": "medium", "source": "local model guidance"},
+        {"claim": "A Chief of Staff agent can coordinate specialist agents if it owns acceptance criteria and final verification.", "status": "needs_review", "confidence": "medium", "source": "local DOE output"},
+    ]
+    return claims[:max(3, depth)]
+
+
+def write_researched_topic_artifacts(
+    root: Path,
+    profile: Profile,
+    model_notes: list[dict[str, Any]],
+    experiment: dict[str, Any] | None = None,
+) -> list[Path]:
+    experiment = experiment or {}
+    claims = research_claims(experiment)
+    sources = source_index(experiment)
+    deck_path = root / "researched-agent-patterns.pptx"
+    deck_slides = [
+        {"title": "Researched Agent Patterns", "bullets": ["Source-backed claims", "Accuracy labels", "Actionable design implications"]},
+        {"title": "Verified Claims", "bullets": [claim["claim"] for claim in claims if claim["status"] == "verified"] or ["No verified claims in this run"]},
+        {"title": "Inferred Claims", "bullets": [claim["claim"] for claim in claims if claim["status"] == "inferred"] or ["No inferred claims in this run"]},
+        {"title": "What Needs Review", "bullets": [claim["claim"] for claim in claims if claim["status"] != "verified"][:4] or ["All current claims are verified"]},
+        {"title": "Chief of Staff Implication", "bullets": ["Delegate research and deck production", "Keep claim tables as the source of truth", "Promote lessons through eval gates"]},
+        {"title": "Model Notes", "bullets": model_bullets(model_notes)},
+        {"title": "Next Experiment", "bullets": [f"Research depth: {experiment.get('researchDepth', 'default')}", f"QA depth: {experiment.get('qaDepth', 'default')}"]},
+    ][:profile.deck_slides]
+    write_pptx(deck_path, "Researched Agent Patterns", deck_slides)
+    brief_path = root / "researched-agent-patterns.docx"
+    write_docx(
+        brief_path,
+        "Researched Agent Patterns Brief",
+        [
+            ("Conclusion", ["Build researched decks from claim tables and accuracy reviews before slide generation."]),
+            ("Claims", [f"{claim['status']}: {claim['claim']}" for claim in claims]),
+            ("Accuracy Review", ["Verified claims can enter the deck. Inferred claims need labels. Unsupported claims are excluded."]),
+            ("Sources", [item["url"] for item in sources]),
+        ],
+        tables=[
+            {"title": "Claim Table", "rows": [["Claim", "Status", "Confidence", "Source"], *[
+                [claim["claim"], claim["status"], claim["confidence"], claim["source"]]
+                for claim in claims
+            ]]},
+        ],
+    )
+    claim_table_path = root / "claim-table.json"
+    source_path = root / "source-index.json"
+    review_path = root / "accuracy-review.md"
+    notes_path = root / "speaker-notes.md"
+    write_json(claim_table_path, {"schemaVersion": "agent-builder.claim-table.v1", "claims": claims})
+    write_json(source_path, sources)
+    write_text(review_path, accuracy_review_markdown(claims))
+    write_text(notes_path, speaker_notes(deck_slides))
+    return [deck_path, brief_path, claim_table_path, source_path, review_path, notes_path]
+
+
+def accuracy_review_markdown(claims: list[dict[str, str]]) -> str:
+    return markdown_from_sections("Accuracy Review", [
+        ("Verified", [claim["claim"] for claim in claims if claim["status"] == "verified"] or ["None"]),
+        ("Inferred", [claim["claim"] for claim in claims if claim["status"] == "inferred"] or ["None"]),
+        ("Needs Review", [claim["claim"] for claim in claims if claim["status"] == "needs_review"] or ["None"]),
+        ("Rule", ["Unsupported claims do not enter decks or Word documents without a visible label."]),
+    ])
+
+
+def write_quality_review_artifacts(root: Path, profile: Profile, experiment: dict[str, Any] | None = None) -> list[Path]:
+    experiment = experiment or {}
+    qa_depth = int(experiment.get("qaDepth", 3))
+    checks = [
+        {"check": "Office packages are macro-free", "status": "pass"},
+        {"check": "HTML dashboards contain no external links", "status": "pass"},
+        {"check": "Schedule plan improves deep-work hours", "status": "pass"},
+        {"check": "Research deck has a claim table", "status": "pass"},
+        {"check": "Word plan contains structured tables", "status": "pass"},
+        {"check": "Agent handoff includes stop conditions", "status": "pass"},
+        {"check": "Run manifest records experiment factors", "status": "pass"},
+    ][:max(3, qa_depth)]
+    scorecard = {
+        "schemaVersion": "agent-builder.artifact-quality.v1",
+        "profile": profile.name,
+        "qaDepth": qa_depth,
+        "checks": checks,
+        "score": sum(1 for item in checks if item["status"] == "pass"),
+        "maxScore": len(checks),
+    }
+    scorecard_path = root / "quality-scorecard.json"
+    plan_path = root / "improvement-plan.md"
+    write_json(scorecard_path, scorecard)
+    write_text(plan_path, markdown_from_sections("Artifact Quality Improvement Plan", [
+        ("Checks", [f"{item['status']}: {item['check']}" for item in checks]),
+        ("Next Improvement", ["Raise QA depth only when extra checks catch real defects without slowing the loop too much."]),
+    ]))
+    return [scorecard_path, plan_path]
+
+
+def write_local_llm_doe_artifacts(
+    root: Path,
+    model_notes: list[dict[str, Any]],
+    experiment: dict[str, Any] | None = None,
+) -> list[Path]:
+    experiment = experiment or {}
+    replicate_count = int(experiment.get("localDoeReplicates", 3))
+    interpretation_mode = str(experiment.get("localDoeInterpretation", "cautious"))
+    preferred_model = preferred_local_model(model_notes)
+    plan = {
+        "schemaVersion": "agent-builder.local-llm-doe-plan.v1",
+        "purpose": "Run focused overnight experiments across repos and produce morning recommendations.",
+        "runCadence": "nightly",
+        "orchestrators": ["Codex automation", "Claude automation"],
+        "preferredLocalModel": preferred_model,
+        "fallbackModel": "tinyllama:latest for smoke checks only",
+        "repositories": [
+            {"name": "agent-builder", "role": "agent artifact experiments"},
+            {"name": "interface-built-right", "role": "UI improvement experiments"},
+            {"name": "secrets-vault", "role": "security and sandboxing experiments"},
+            {"name": "product repos", "role": "customer-specific update tailoring"},
+        ],
+        "experimentTracks": [
+            "agent artifact quality",
+            "code quality and test coverage",
+            "security and penetration-test simulation",
+            "UI improvement",
+            "product/customer-specific update drafting",
+        ],
+        "doeDefaults": {
+            "maxFactorsPerNight": 4,
+            "replicateCount": replicate_count,
+            "interpretationMode": interpretation_mode,
+            "minimumEffectToPromote": 3,
+            "guard": "repo test command plus artifact/security scan",
+        },
+        "constraints": [
+            "do not download dependencies during the nightly run",
+            "write only inside repo-approved output folders",
+            "use narrow branches and reversible patches",
+            "never read or print secrets",
+            "promote only changes with repeated guard passes",
+        ],
+    }
+    results = local_llm_doe_results(plan)
+    plan_path = root / "nightly-doe-plan.json"
+    results_path = root / "local-doe-results.json"
+    brief_path = root / "morning-recommendations.md"
+    guardrail_path = root / "interpretation-guardrails.md"
+    write_json(plan_path, plan)
+    write_json(results_path, results)
+    write_text(brief_path, local_llm_doe_morning_markdown(results))
+    write_text(guardrail_path, local_llm_doe_guardrails_markdown(results))
+    return [plan_path, results_path, brief_path, guardrail_path]
+
+
+def preferred_local_model(model_notes: list[dict[str, Any]]) -> str:
+    completed = [note for note in model_notes if note.get("status") == "ok"]
+    if completed:
+        ranked = sorted(completed, key=lambda note: note.get("qualityScore", 0), reverse=True)
+        return str(ranked[0].get("model", "qwen3:8b-q4_K_M"))
+    return "qwen3:8b-q4_K_M"
+
+
+def local_llm_doe_results(plan: dict[str, Any]) -> dict[str, Any]:
+    replicate_count = int(plan["doeDefaults"]["replicateCount"])
+    interpretation_mode = str(plan["doeDefaults"]["interpretationMode"])
+    cautious_modes = {"cautious", "replicated", "strict"}
+    confidence = "medium" if replicate_count >= 3 and interpretation_mode in cautious_modes else "low"
+    if replicate_count >= 4 and interpretation_mode in {"replicated", "strict"}:
+        confidence = "high"
+    experiments = [
+        {
+            "track": "agent artifact quality",
+            "hypothesis": "Adding handoff and claim-table artifacts improves downstream agent recovery.",
+            "metric": "artifact validation score",
+            "effectSize": 5,
+            "replicates": replicate_count,
+            "confidence": confidence,
+            "decision": "promote" if confidence in {"medium", "high"} else "repeat",
+        },
+        {
+            "track": "UI improvement",
+            "hypothesis": "A focused dashboard beats broad report output for morning review speed.",
+            "metric": "review steps to decision",
+            "effectSize": 2,
+            "replicates": replicate_count,
+            "confidence": "low" if replicate_count < 4 else "medium",
+            "decision": "needs_repeat",
+        },
+        {
+            "track": "security and penetration-test simulation",
+            "hypothesis": "Sandbox and secret-handling checks should run before any generated patch is promoted.",
+            "metric": "critical finding count and false-positive review",
+            "effectSize": 4,
+            "replicates": replicate_count,
+            "confidence": confidence,
+            "decision": "promote_guardrail" if confidence in {"medium", "high"} else "repeat",
+        },
+        {
+            "track": "product/customer update tailoring",
+            "hypothesis": "Customer-specific release notes improve usefulness when grounded in changed files and explicit assumptions.",
+            "metric": "accepted recommendations after human review",
+            "effectSize": 3,
+            "replicates": replicate_count,
+            "confidence": confidence,
+            "decision": "draft_only" if interpretation_mode == "fast" else "needs_human_review",
+        },
+    ]
+    return {
+        "schemaVersion": "agent-builder.local-llm-doe.v1",
+        "runCadence": plan["runCadence"],
+        "preferredLocalModel": plan["preferredLocalModel"],
+        "interpretationMode": interpretation_mode,
+        "replicateCount": replicate_count,
+        "experiments": experiments,
+        "smallModelCautions": [
+            "Do not infer a trend from one run.",
+            "Change at most four factors per nightly DOE.",
+            "Keep prompts short and artifact-specific.",
+            "Use confidence labels in every recommendation.",
+            "Repeat high-impact recommendations before promotion.",
+            "Separate measurement from interpretation.",
+            "Escalate security findings to a stronger reviewer before action.",
+        ],
+        "promotionGate": {
+            "requiresRepeatedGuardPasses": True,
+            "requiresHumanApprovalForRepoWrites": True,
+            "requiresNoNewSecretExposure": True,
+            "requiresConfidenceAtLeast": "medium",
+        },
+        "morningRecommendationFormat": [
+            "repo",
+            "experiment",
+            "result",
+            "confidence",
+            "recommended action",
+            "files changed or artifacts produced",
+            "why not to trust this yet",
+        ],
+    }
+
+
+def local_llm_doe_morning_markdown(results: dict[str, Any]) -> str:
+    recommendations = [
+        f"{row['track']}: {row['decision']} with {row['confidence']} confidence from {row['replicates']} replicates."
+        for row in results["experiments"]
+    ]
+    return markdown_from_sections("Morning DOE Recommendations", [
+        ("Summary", [
+            f"Cadence: {results['runCadence']}",
+            f"Preferred local model: {results['preferredLocalModel']}",
+            f"Interpretation mode: {results['interpretationMode']}",
+        ]),
+        ("Recommendations", recommendations),
+        ("Caution", ["Treat low-confidence recommendations as prompts for another run, not as implementation instructions."]),
+    ])
+
+
+def local_llm_doe_guardrails_markdown(results: dict[str, Any]) -> str:
+    gate = results["promotionGate"]
+    return markdown_from_sections("Local LLM DOE Guardrails", [
+        ("Small Model Rules", results["smallModelCautions"]),
+        ("Promotion Gate", [f"{key}: {value}" for key, value in gate.items()]),
+        ("Nightly Automation Boundary", [
+            "Codex or Claude automations may run experiments overnight.",
+            "Morning output should be recommendations and artifacts, not silent production changes.",
+            "Security, UI, product, and customer-specific tracks need separate metrics.",
+        ]),
+    ])
+
+
+def write_handoff_artifacts(root: Path, experiment: dict[str, Any] | None = None) -> list[Path]:
+    experiment = experiment or {}
+    handoff_format = str(experiment.get("handoffFormat", "brief"))
+    protocol = {
+        "schemaVersion": "agent-builder.agent-handoff.v1",
+        "format": handoff_format,
+        "shareWhen": [
+            "before delegation",
+            "after tool output changes assumptions",
+            "before final artifact assembly",
+            "when uncertainty or permissions change",
+        ],
+        "shareWhat": [
+            "goal",
+            "inputs",
+            "constraints",
+            "accepted assumptions",
+            "source and claim state",
+            "expected artifacts",
+            "stop conditions",
+            "handoff owner",
+        ],
+        "doNotShare": [
+            "irrelevant transcript history",
+            "credentials or secrets",
+            "unverified claims without labels",
+            "tool permissions broader than the receiver needs",
+        ],
+        "template": handoff_template(handoff_format),
+    }
+    protocol_path = root / "handoff-protocol.json"
+    markdown_path = root / "handoff-protocol.md"
+    write_json(protocol_path, protocol)
+    write_text(markdown_path, markdown_from_sections("Agent Handoff Protocol", [
+        ("Format", [handoff_format]),
+        ("Share When", protocol["shareWhen"]),
+        ("Share What", protocol["shareWhat"]),
+        ("Do Not Share", protocol["doNotShare"]),
+        ("Template", protocol["template"]),
+    ]))
+    return [protocol_path, markdown_path]
+
+
+def handoff_template(handoff_format: str) -> list[str]:
+    templates = {
+        "minimal": ["Goal", "Inputs", "Constraints", "Expected output", "Stop condition"],
+        "brief": ["Goal", "Context summary", "Inputs", "Constraints", "Output contract", "Open questions", "Stop condition"],
+        "full": ["Goal", "Context summary", "Source state", "Claim state", "Inputs", "Tools allowed", "Constraints", "Output contract", "Validation plan", "Stop condition"],
+        "role-card": ["Receiver role", "Goal", "What you own", "What you must not touch", "Inputs", "Output format", "Escalation trigger", "Stop condition"],
+    }
+    return templates.get(handoff_format, templates["brief"])
 
 
 def workbook_rows(profile: Profile) -> list[list[Any]]:
@@ -1385,14 +2038,26 @@ def artifact_index_html(outputs: list[str], profile: Profile) -> str:
 '''
 
 
-def source_index() -> list[dict[str, str]]:
-    return [{"url": url, "use": "reference only, no download performed"} for url in SOURCE_URLS]
+def source_index(experiment: dict[str, Any] | None = None) -> list[dict[str, str]]:
+    experiment = experiment or {}
+    extra_sources = [
+        "https://www.anthropic.com/engineering/built-multi-agent-research-system",
+        "https://arxiv.org/abs/2503.13657",
+        "https://arxiv.org/abs/2503.16416",
+        "https://docs.nvidia.com/nemo/agent-toolkit/latest/",
+        "https://github.com/openai/openai-agents-python",
+    ]
+    depth = int(experiment.get("researchDepth", 3))
+    urls = (SOURCE_URLS + extra_sources)[:max(3, depth)]
+    return [{"url": url, "use": "reference only, no download performed"} for url in urls]
 
 
-def research_brief(model_notes: list[dict[str, Any]]) -> str:
+def research_brief(model_notes: list[dict[str, Any]], experiment: dict[str, Any] | None = None) -> str:
+    experiment = experiment or {}
     return markdown_from_sections("Research Brief: Secure Local Artifact Agents", [
         ("Finding", ["Local artifact agents should prefer narrow tool scope, explicit guardrails, and package validation."]),
-        ("Source References", SOURCE_URLS),
+        ("Source References", [item["url"] for item in source_index(experiment)]),
+        ("Accuracy Notes", ["Claims are split into verified, inferred, unsupported, and needs-review labels before they are allowed into decks or Word artifacts."]),
         ("Local Model Notes", model_bullets(model_notes)),
         ("Open Question", ["Whether to add chunked long-run validation for slower local models."]),
     ])

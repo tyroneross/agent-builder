@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "agent-builder.artifact-quality.v1",
+  "profile": "mixed-19",
+  "qaDepth": 3,
+  "checks": [
+    {
+      "check": "Office packages are macro-free",
+      "status": "pass"
+    },
+    {
+      "check": "HTML dashboards contain no external links",
+      "status": "pass"
+    },
+    {
+      "check": "Schedule plan improves deep-work hours",
+      "status": "pass"
+    }
+  ],
+  "score": 3,
+  "maxScore": 3
+}

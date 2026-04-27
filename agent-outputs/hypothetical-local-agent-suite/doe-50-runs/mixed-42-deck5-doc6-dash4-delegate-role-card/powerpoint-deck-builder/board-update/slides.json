@@ -1,0 +1,41 @@
+{
+  "slides": [
+    {
+      "title": "Local Agent Builder",
+      "bullets": [
+        "Actual output run",
+        "Repo-constrained artifacts",
+        "No downloads"
+      ]
+    },
+    {
+      "title": "What Changed",
+      "bullets": [
+        "Agents emit docx, pptx, xlsx, html, json, and markdown",
+        "Artifacts are validated for macros and external relationships"
+      ]
+    },
+    {
+      "title": "Domain Learning",
+      "bullets": [
+        "Scenario results feed a learning ledger",
+        "Accepted lessons require rollback rules"
+      ]
+    },
+    {
+      "title": "Security Boundary",
+      "bullets": [
+        "Writes stay under agent-outputs",
+        "No executable outputs",
+        "No external package downloads"
+      ]
+    },
+    {
+      "title": "Model Experiment",
+      "bullets": [
+        "Model calls skipped for deterministic test run"
+      ]
+    }
+  ],
+  "profile": "mixed-42"
+}

@@ -1,6 +1,6 @@
 # Hypothetical Local Agent Suite
 
-Score: 1312/1362
+Score: 11282/11727
 Passed: True
 
 ## Final Outputs
@@ -17,6 +17,22 @@ Passed: True
 - `chief-of-staff-agent/schedule-optimizer/chief-of-staff-team.md`
 - `chief-of-staff-agent/schedule-optimizer/optimized-week.ics`
 - `chief-of-staff-agent/schedule-optimizer/weekly-time-plan.docx`
+- `chief-of-staff-agent/productivity-dashboard/dashboard-data.json`
+- `chief-of-staff-agent/productivity-dashboard/index.html`
+- `researched-deck-agent/agent-framework-topic/researched-agent-patterns.pptx`
+- `researched-deck-agent/agent-framework-topic/researched-agent-patterns.docx`
+- `researched-deck-agent/agent-framework-topic/claim-table.json`
+- `researched-deck-agent/agent-framework-topic/source-index.json`
+- `researched-deck-agent/agent-framework-topic/accuracy-review.md`
+- `researched-deck-agent/agent-framework-topic/speaker-notes.md`
+- `artifact-quality-agent/quality-review/quality-scorecard.json`
+- `artifact-quality-agent/quality-review/improvement-plan.md`
+- `local-llm-doe-agent/experiment-loop/nightly-doe-plan.json`
+- `local-llm-doe-agent/experiment-loop/local-doe-results.json`
+- `local-llm-doe-agent/experiment-loop/morning-recommendations.md`
+- `local-llm-doe-agent/experiment-loop/interpretation-guardrails.md`
+- `agent-handoff-agent/instruction-handoff/handoff-protocol.json`
+- `agent-handoff-agent/instruction-handoff/handoff-protocol.md`
 - `model-comparison-agent/local-llm-review/model-comparison.json`
 - `model-comparison-agent/local-llm-review/model-comparison.md`
 - `agent-skill-pack/skills-index.json`
@@ -39,4 +55,4 @@ Passed: True
 
 ## DOE
 
-Best run: `deckDepth-high-docDepth-high-dashboardDepth-high`
+Best run: `mixed-05-deck8-doc7-dash5-recovery-minimal`

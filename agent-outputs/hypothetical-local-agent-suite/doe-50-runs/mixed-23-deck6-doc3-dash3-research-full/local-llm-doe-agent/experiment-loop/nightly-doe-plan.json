@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "agent-builder.local-llm-doe-plan.v1",
+  "purpose": "Run focused overnight experiments across repos and produce morning recommendations.",
+  "runCadence": "nightly",
+  "orchestrators": [
+    "Codex automation",
+    "Claude automation"
+  ],
+  "preferredLocalModel": "qwen3:8b-q4_K_M",
+  "fallbackModel": "tinyllama:latest for smoke checks only",
+  "repositories": [
+    {
+      "name": "agent-builder",
+      "role": "agent artifact experiments"
+    },
+    {
+      "name": "interface-built-right",
+      "role": "UI improvement experiments"
+    },
+    {
+      "name": "secrets-vault",
+      "role": "security and sandboxing experiments"
+    },
+    {
+      "name": "product repos",
+      "role": "customer-specific update tailoring"
+    }
+  ],
+  "experimentTracks": [
+    "agent artifact quality",
+    "code quality and test coverage",
+    "security and penetration-test simulation",
+    "UI improvement",
+    "product/customer-specific update drafting"
+  ],
+  "doeDefaults": {
+    "maxFactorsPerNight": 4,
+    "replicateCount": 2,
+    "interpretationMode": "strict",
+    "minimumEffectToPromote": 3,
+    "guard": "repo test command plus artifact/security scan"
+  },
+  "constraints": [
+    "do not download dependencies during the nightly run",
+    "write only inside repo-approved output folders",
+    "use narrow branches and reversible patches",
+    "never read or print secrets",
+    "promote only changes with repeated guard passes"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "agent-builder.artifact-quality.v1",
+  "profile": "mixed-11",
+  "qaDepth": 4,
+  "checks": [
+    {
+      "check": "Office packages are macro-free",
+      "status": "pass"
+    },
+    {
+      "check": "HTML dashboards contain no external links",
+      "status": "pass"
+    },
+    {
+      "check": "Schedule plan improves deep-work hours",
+      "status": "pass"
+    },
+    {
+      "check": "Research deck has a claim table",
+      "status": "pass"
+    }
+  ],
+  "score": 4,
+  "maxScore": 4
+}

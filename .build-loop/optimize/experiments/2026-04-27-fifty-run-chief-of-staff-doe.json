@@ -1,0 +1,15 @@
+{
+  "target": "fifty-run-chief-of-staff-doe",
+  "scope": "scripts/run-artifact-agents.py,tests/*.mjs,package.json,docs/*.md,agent-outputs/**/*.md,agent-outputs/**/*.json",
+  "metric_cmd": "npm run agents:artifacts:score",
+  "guard_cmd": "npm test && npm run build && npm audit --audit-level=moderate",
+  "budget": 50,
+  "direction": "higher",
+  "baseline_commit": "57297ca",
+  "baseline_value": 1312.0,
+  "best_value": 2029.0,
+  "prompt_version": "v1",
+  "started_at": "2026-04-27T10:40:28.293240+00:00Z",
+  "iterations_kept": 1,
+  "iterations_total": 1
+}

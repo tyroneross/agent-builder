@@ -26,13 +26,12 @@
 
 - Model calls skipped for deterministic test run
 
+## Research Accuracy
+
+- Claims move through source, confidence, and accuracy review tables
+- Research depth factor: default
+
 ## DOE Result
 
 - Deck depth, document depth, and dashboard depth were varied
 - Best setting uses richer artifacts with security pack
-
-## Decision
-
-- Keep real-output artifact runner
-- Chunk long local model validation
-- Promote passing artifacts into the UI build flow

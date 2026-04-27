@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Output Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f8fafc; color: #111827; }
+    main { max-width: 960px; margin: 0 auto; padding: 32px; }
+    h1 { font-size: 32px; margin-bottom: 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .card { background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 16px; }
+    .card span, .card small { display: block; color: #4b5563; }
+    .card strong { display: block; font-size: 28px; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Agent Output Dashboard</h1>
+    <p>Profile: mixed-38. All content is local and generated inside the artifact folder.</p>
+    <div class="grid"><section class="card"><span>Artifact score</span><strong>100</strong><small>validated</small></section>
+<section class="card"><span>Office files</span><strong>3</strong><small>pptx/docx/xlsx</small></section>
+<section class="card"><span>Security checks</span><strong>pass</strong><small>no macros</small></section>
+<section class="card"><span>Local models</span><strong>3</strong><small>qwen/gemma/tinyllama</small></section></div>
+  </main>
+  <script>
+    const dashboardData = {"cards": [{"label": "Artifact score", "value": 100, "trend": "validated"}, {"label": "Office files", "value": 3, "trend": "pptx/docx/xlsx"}, {"label": "Security checks", "value": "pass", "trend": "no macros"}, {"label": "Local models", "value": 3, "trend": "qwen/gemma/tinyllama"}], "updated": "2026-04-27"};
+    console.log("local dashboard data", dashboardData);
+  </script>
+</body>
+</html>
