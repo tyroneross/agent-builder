@@ -15,11 +15,13 @@ import html
 import json
 import posixpath
 import shutil
+import subprocess
 import time
 import urllib.error
 import urllib.request
 import zipfile
 from dataclasses import dataclass
+from datetime import date, timedelta
 from itertools import product
 from pathlib import Path
 from typing import Any
@@ -64,7 +66,7 @@ def main() -> int:
     parser.add_argument("--score", action="store_true", help="Print numeric validation score only.")
     parser.add_argument("--json", action="store_true", help="Print JSON result.")
     parser.add_argument("--skip-models", action="store_true", help="Do not call local Ollama models.")
-    parser.add_argument("--models", default="qwen3:8b-q4_K_M,gemma4:26b,tinyllama:latest")
+    parser.add_argument("--models", default="qwen3:8b-q4_K_M,gemma4:26b,llama3.2:3b,gpt-oss:20b,tinyllama:latest")
     parser.add_argument("--timeout", type=int, default=45)
     args = parser.parse_args()
 
@@ -117,17 +119,18 @@ def main() -> int:
 def collect_model_notes(models: list[str], timeout: int) -> list[dict[str, Any]]:
     notes: list[dict[str, Any]] = []
     prompt = (
-        "In one concise sentence, name a security or quality control for local agents "
-        "that generate files in a sandbox."
+        "Return compact JSON with keys schedulePlan, honestyControl, and toolBoundary. "
+        "Design controls for a Chief of Staff agent that optimizes a founder's schedule "
+        "using local files and sandboxed tools."
     )
     for model in [item.strip() for item in models if item.strip()]:
         payload = json.dumps({
             "model": model,
-            "system": "Answer with one concise sentence. No markdown.",
+            "system": "Answer with compact JSON only. No markdown.",
             "prompt": prompt,
             "stream": False,
             "think": False,
-            "options": {"num_predict": 48, "temperature": 0.1},
+            "options": {"num_predict": 96, "temperature": 0.1},
         }).encode("utf-8")
         request = urllib.request.Request(
             "http://localhost:11434/api/generate",
@@ -143,6 +146,7 @@ def collect_model_notes(models: list[str], timeout: int) -> list[dict[str, Any]]
                 "status": "ok",
                 "durationSeconds": round(time.time() - started, 2),
                 "response": body.get("response", "").strip(),
+                "qualityScore": score_model_note(body.get("response", "")),
             })
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
             notes.append({
@@ -152,6 +156,23 @@ def collect_model_notes(models: list[str], timeout: int) -> list[dict[str, Any]]
                 "error": str(error),
             })
     return notes
+
+
+def score_model_note(text: str) -> int:
+    lowered = text.lower()
+    terms = [
+        "schedule",
+        "calendar",
+        "priority",
+        "honesty",
+        "uncertain",
+        "sandbox",
+        "tool",
+        "permission",
+        "local",
+        "output",
+    ]
+    return sum(1 for term in terms if term in lowered)
 
 
 def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any]], run_id: str) -> dict[str, Any]:
@@ -174,6 +195,55 @@ def generate_suite(root: Path, profile: Profile, model_notes: list[dict[str, Any
     ops_path = root / "chief-of-staff-agent" / "weekly-ops" / "operating-plan.docx"
     write_docx(ops_path, "Weekly Operating Plan", chief_of_staff_sections(model_notes))
     outputs.append(str(ops_path.relative_to(root)))
+
+    schedule_dir = root / "chief-of-staff-agent" / "schedule-optimizer"
+    schedule = sample_schedule()
+    productivity_plan = optimize_schedule(schedule)
+    write_json(schedule_dir / "input-schedule.json", schedule)
+    write_json(schedule_dir / "time-block-plan.json", productivity_plan)
+    write_json(schedule_dir / "learning-ledger.json", productivity_plan["learningLedger"])
+    write_text(schedule_dir / "chief-of-staff-team.md", chief_of_staff_team_markdown(productivity_plan))
+    write_text(schedule_dir / "optimized-week.ics", calendar_ics(productivity_plan))
+    time_plan_doc = schedule_dir / "weekly-time-plan.docx"
+    write_docx(
+        time_plan_doc,
+        "Chief of Staff 100x Productivity Plan",
+        chief_of_staff_productivity_sections(productivity_plan),
+        tables=[
+            {
+                "title": "Recommended Time Blocks",
+                "rows": [["Day", "Time", "Mode", "Why"], *[
+                    [block["day"], f"{block['start']} - {block['end']}", block["mode"], block["why"]]
+                    for block in productivity_plan["optimizedBlocks"]
+                ]],
+            },
+            {
+                "title": "Learning Loop",
+                "rows": [["Iteration", "Hypothesis", "Result", "Decision"], *[
+                    [str(item["iteration"]), item["hypothesis"], item["result"], item["decision"]]
+                    for item in productivity_plan["learningLedger"]
+                ]],
+            },
+        ],
+    )
+    outputs.extend(relative_paths(schedule_dir.parent.parent, [
+        schedule_dir / "input-schedule.json",
+        schedule_dir / "time-block-plan.json",
+        schedule_dir / "learning-ledger.json",
+        schedule_dir / "chief-of-staff-team.md",
+        schedule_dir / "optimized-week.ics",
+        time_plan_doc,
+    ]))
+
+    model_dir = root / "model-comparison-agent" / "local-llm-review"
+    write_json(model_dir / "model-comparison.json", model_comparison_report(model_notes))
+    write_text(model_dir / "model-comparison.md", model_comparison_markdown(model_notes))
+    outputs.extend(relative_paths(root, [model_dir / "model-comparison.json", model_dir / "model-comparison.md"]))
+
+    skill_dir = root / "agent-skill-pack"
+    write_json(skill_dir / "skills-index.json", agent_skill_index())
+    write_text(skill_dir / "README.md", agent_skill_pack_markdown())
+    outputs.extend(relative_paths(root, [skill_dir / "skills-index.json", skill_dir / "README.md"]))
 
     workbook_path = root / "data-analysis-agent" / "usage-review" / "metrics-workbook.xlsx"
     write_xlsx(workbook_path, workbook_rows(profile))
@@ -286,7 +356,7 @@ def validate_output_tree(root: Path) -> dict[str, Any]:
     score = 0
     max_score = 0
     files = [item for item in root.rglob("*") if item.is_file()]
-    required_suffixes = {".csv", ".docx", ".html", ".json", ".md", ".pdf", ".pptx", ".xlsx"}
+    required_suffixes = {".csv", ".docx", ".html", ".ics", ".json", ".md", ".pdf", ".pptx", ".xlsx"}
 
     for suffix in required_suffixes:
         max_score += 5
@@ -316,9 +386,21 @@ def validate_output_tree(root: Path) -> dict[str, Any]:
             if item.suffix == ".pptx":
                 max_score += 7
                 score += min(count_pptx_slides(item), 7)
+                max_score += 4
+                pptx_errors = validate_pptx_hygiene(item)
+                if pptx_errors:
+                    errors.extend(pptx_errors)
+                else:
+                    score += 4
             if item.suffix == ".docx":
                 max_score += 6
                 score += min(count_docx_sections(item), 6)
+                if item.name == "weekly-time-plan.docx":
+                    max_score += 4
+                    if count_docx_tables(item) >= 2:
+                        score += 4
+                    else:
+                        errors.append(f"Chief of Staff time plan is missing formatted tables: {item}")
             if item.suffix == ".xlsx":
                 max_score += 5
                 score += min(count_xlsx_rows(item), 5)
@@ -341,6 +423,63 @@ def validate_output_tree(root: Path) -> dict[str, Any]:
         except json.JSONDecodeError as error:
             errors.append(f"Invalid JSON {json_file}: {error}")
 
+    for plan_file in root.rglob("time-block-plan.json"):
+        max_score += 14
+        try:
+            plan = json.loads(plan_file.read_text(encoding="utf-8"))
+            if len(plan.get("optimizedBlocks", [])) >= 5:
+                score += 3
+            else:
+                errors.append(f"Schedule plan has too few optimized blocks: {plan_file}")
+            if len(plan.get("team", [])) >= 5:
+                score += 3
+            else:
+                errors.append(f"Chief of Staff team is underspecified: {plan_file}")
+            if len(plan.get("learningLedger", [])) >= 3:
+                score += 3
+            else:
+                errors.append(f"Learning ledger has too few iterations: {plan_file}")
+            baseline = plan.get("baselineMetrics", {})
+            optimized = plan.get("optimizedMetrics", {})
+            if optimized.get("deepWorkHours", 0) > baseline.get("deepWorkHours", 0):
+                score += 3
+            else:
+                errors.append(f"Schedule plan does not improve deep-work hours: {plan_file}")
+            if any("missing" in rule.lower() or "approval" in rule.lower() for rule in plan.get("rules", [])):
+                score += 2
+            else:
+                errors.append(f"Schedule plan lacks honesty or approval guardrails: {plan_file}")
+        except json.JSONDecodeError as error:
+            errors.append(f"Invalid time-block plan {plan_file}: {error}")
+
+    for comparison_file in root.rglob("model-comparison.json"):
+        max_score += 8
+        try:
+            comparison = json.loads(comparison_file.read_text(encoding="utf-8"))
+            if comparison.get("schemaVersion") == "agent-builder.local-model-comparison.v1":
+                score += 2
+            if comparison.get("recommendedRouter"):
+                score += 3
+            if comparison.get("status") in {"skipped", "completed"}:
+                score += 1
+            if comparison.get("status") == "skipped" or comparison.get("ranking") or comparison.get("results"):
+                score += 2
+        except json.JSONDecodeError as error:
+            errors.append(f"Invalid model comparison {comparison_file}: {error}")
+
+    for skill_index_file in root.rglob("skills-index.json"):
+        max_score += 6
+        try:
+            skill_index = json.loads(skill_index_file.read_text(encoding="utf-8"))
+            if len(skill_index.get("skills", [])) >= 5:
+                score += 3
+            if skill_index.get("promotionGate", {}).get("requiresMeasuredImprovement") is True:
+                score += 2
+            if "honest" in skill_index.get("purpose", "").lower():
+                score += 1
+        except json.JSONDecodeError as error:
+            errors.append(f"Invalid skill index {skill_index_file}: {error}")
+
     for pdf_file in root.rglob("*.pdf"):
         max_score += 3
         content = pdf_file.read_bytes()
@@ -357,6 +496,14 @@ def validate_output_tree(root: Path) -> dict[str, Any]:
         else:
             errors.append(f"Invalid CSV metrics artifact: {csv_file}")
 
+    for ics_file in root.rglob("*.ics"):
+        max_score += 3
+        content = ics_file.read_text(encoding="utf-8")
+        if "BEGIN:VCALENDAR" in content and content.count("BEGIN:VEVENT") >= 5 and "20260501" in content:
+            score += 3
+        else:
+            errors.append(f"Invalid calendar artifact: {ics_file}")
+
     return {
         "passed": not errors,
         "score": score,
@@ -371,11 +518,12 @@ def validate_ooxml_package(path: Path) -> list[str]:
     try:
         with zipfile.ZipFile(path) as package:
             names = package.namelist()
+            file_names = [name for name in names if not name.endswith("/")]
             if "[Content_Types].xml" not in names:
                 errors.append(f"{path} missing [Content_Types].xml")
-            if any(any(part in name for part in FORBIDDEN_ZIP_PARTS) for name in names):
+            if any(any(part in name for part in FORBIDDEN_ZIP_PARTS) for name in file_names):
                 errors.append(f"{path} contains forbidden embedded/macro part")
-            for name in names:
+            for name in file_names:
                 if name.endswith(".rels"):
                     rels = package.read(name).decode("utf-8", errors="ignore")
                     if 'TargetMode="External"' in rels:
@@ -406,18 +554,54 @@ def count_docx_sections(path: Path) -> int:
     return document.count('w:pStyle w:val="Heading1"')
 
 
+def count_docx_tables(path: Path) -> int:
+    with zipfile.ZipFile(path) as package:
+        document = package.read("word/document.xml").decode("utf-8", errors="ignore")
+    return document.count("<w:tbl>")
+
+
 def count_xlsx_rows(path: Path) -> int:
     with zipfile.ZipFile(path) as package:
         worksheet = package.read("xl/worksheets/sheet1.xml").decode("utf-8", errors="ignore")
     return worksheet.count("<row ")
 
 
-def write_docx(path: Path, title: str, sections: list[tuple[str, list[str]]]) -> None:
+def validate_pptx_hygiene(path: Path) -> list[str]:
+    errors: list[str] = []
+    placeholder_terms = ["Slide Number", "Click to add", "Lorem ipsum", "Replace with", "TODO", "TBD"]
+    with zipfile.ZipFile(path) as package:
+        names = [name for name in package.namelist() if not name.endswith("/")]
+        slides = [name for name in names if name.startswith("ppt/slides/slide") and name.endswith(".xml")]
+        if len(slides) < 1:
+            errors.append(f"{path} contains no slide XML parts")
+        for name in slides:
+            xml = package.read(name).decode("utf-8", errors="ignore")
+            if any(term in xml for term in placeholder_terms):
+                errors.append(f"{path} contains placeholder text in {name}")
+            if 'type="sldNum"' in xml or "placeholderType" in xml:
+                errors.append(f"{path} contains slide-number placeholder in {name}")
+        for name in names:
+            if name.startswith("ppt/media/") and package.getinfo(name).file_size == 0:
+                errors.append(f"{path} contains zero-byte media part {name}")
+    return errors
+
+
+def write_docx(
+    path: Path,
+    title: str,
+    sections: list[tuple[str, list[str]]],
+    tables: list[dict[str, Any]] | None = None,
+) -> None:
     paragraphs = [docx_paragraph(title, style="Title")]
     for heading, bullets in sections:
         paragraphs.append(docx_paragraph(heading, style="Heading1"))
         for bullet in bullets:
             paragraphs.append(docx_paragraph(bullet, style="ListParagraph"))
+    for table in tables or []:
+        table_title = table.get("title")
+        if table_title:
+            paragraphs.append(docx_paragraph(str(table_title), style="Heading2"))
+        paragraphs.append(docx_table(table.get("rows", [])))
 
     document_xml = f'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -442,7 +626,70 @@ def docx_paragraph(text: str, style: str | None = None) -> str:
     return f"<w:p>{style_xml}<w:r><w:t>{escape(text)}</w:t></w:r></w:p>"
 
 
+def docx_table(rows: list[list[Any]]) -> str:
+    if not rows:
+        return ""
+    table_rows = []
+    for row_index, row in enumerate(rows):
+        cells = []
+        for cell in row:
+            fill = '<w:shd w:fill="E5F0FF"/>' if row_index == 0 else ""
+            bold = "<w:b/>" if row_index == 0 else ""
+            cells.append(
+                "<w:tc>"
+                f"<w:tcPr>{fill}<w:tcW w:w=\"2400\" w:type=\"dxa\"/></w:tcPr>"
+                f"<w:p><w:r><w:rPr>{bold}</w:rPr><w:t>{escape(str(cell))}</w:t></w:r></w:p>"
+                "</w:tc>"
+            )
+        table_rows.append(f"<w:tr>{''.join(cells)}</w:tr>")
+    borders = (
+        '<w:tblBorders><w:top w:val="single" w:sz="4" w:color="CBD5E1"/>'
+        '<w:left w:val="single" w:sz="4" w:color="CBD5E1"/>'
+        '<w:bottom w:val="single" w:sz="4" w:color="CBD5E1"/>'
+        '<w:right w:val="single" w:sz="4" w:color="CBD5E1"/>'
+        '<w:insideH w:val="single" w:sz="4" w:color="CBD5E1"/>'
+        '<w:insideV w:val="single" w:sz="4" w:color="CBD5E1"/></w:tblBorders>'
+    )
+    return f"<w:tbl><w:tblPr><w:tblW w:w=\"0\" w:type=\"auto\"/>{borders}</w:tblPr>{''.join(table_rows)}</w:tbl>"
+
+
 def write_pptx(path: Path, title: str, slides: list[dict[str, Any]]) -> None:
+    script = REPO_ROOT / "scripts" / "write-pptx.mjs"
+    spec_path = path.with_suffix(".pptx-spec.json")
+    write_json(spec_path, {"title": title, "slides": slides})
+    try:
+        subprocess.run(
+            ["node", str(script), str(spec_path), str(path)],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=45,
+        )
+        strip_zip_directory_entries(path)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as error:
+        if path.exists():
+            path.unlink()
+        write_pptx_ooxml(path, title, slides)
+        write_text(
+            path.with_suffix(".pptx-warning.txt"),
+            f"Fell back to minimal OOXML deck generation because pptxgenjs failed: {error}\n",
+        )
+    finally:
+        if spec_path.exists():
+            spec_path.unlink()
+
+
+def strip_zip_directory_entries(path: Path) -> None:
+    temp_path = path.with_suffix(path.suffix + ".tmp")
+    with zipfile.ZipFile(path) as source, zipfile.ZipFile(temp_path, "w", zipfile.ZIP_DEFLATED) as target:
+        for info in source.infolist():
+            if info.filename.endswith("/"):
+                continue
+            target.writestr(info, source.read(info.filename))
+    temp_path.replace(path)
+
+
+def write_pptx_ooxml(path: Path, title: str, slides: list[dict[str, Any]]) -> None:
     files: dict[str, str] = {
         "[Content_Types].xml": content_types_pptx(len(slides)),
         "_rels/.rels": root_rels("ppt/presentation.xml"),
@@ -644,6 +891,7 @@ def word_styles() -> str:
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:rPr><w:b/><w:sz w:val="36"/></w:rPr></w:style>
   <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="Heading 1"/><w:rPr><w:b/><w:sz w:val="28"/></w:rPr></w:style>
+  <w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="Heading 2"/><w:rPr><w:b/><w:sz w:val="22"/><w:color w:val="2563EB"/></w:rPr></w:style>
   <w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/></w:style>
 </w:styles>'''
 
@@ -787,6 +1035,260 @@ def chief_of_staff_sections(model_notes: list[dict[str, Any]]) -> list[tuple[str
         ("Risks", ["Long local model runs can time out", "Generated Office files need package validation", "Output roots must remain constrained."]),
         ("Follow-ups", model_bullets(model_notes)),
     ]
+
+
+def sample_schedule() -> dict[str, Any]:
+    return {
+        "schemaVersion": "agent-builder.schedule-input.v1",
+        "ownerGoal": "Become 100x more productive by spending more time on high-leverage strengths and less time manually coordinating low-leverage work.",
+        "strengths": [
+            "rapid product judgment",
+            "connecting research to implementation",
+            "creative system design",
+            "high-context review and prioritization",
+        ],
+        "compensateFor": [
+            "context switching",
+            "open-loop accumulation",
+            "calendar fragmentation",
+            "manual follow-up tracking",
+        ],
+        "weekOf": "2026-04-27",
+        "events": [
+            {"day": "Monday", "start": "09:00", "end": "09:45", "title": "Inbox and open loops", "type": "admin", "fixed": False},
+            {"day": "Monday", "start": "10:00", "end": "11:00", "title": "Agent builder review", "type": "strategy", "fixed": True},
+            {"day": "Monday", "start": "13:00", "end": "14:00", "title": "Research synthesis", "type": "deep_work", "fixed": False},
+            {"day": "Tuesday", "start": "09:30", "end": "10:15", "title": "Project triage", "type": "coordination", "fixed": True},
+            {"day": "Tuesday", "start": "11:00", "end": "12:00", "title": "Docs and artifact QA", "type": "review", "fixed": False},
+            {"day": "Wednesday", "start": "10:00", "end": "11:30", "title": "Design direction", "type": "strategy", "fixed": True},
+            {"day": "Wednesday", "start": "15:00", "end": "15:45", "title": "Follow-ups", "type": "admin", "fixed": False},
+            {"day": "Thursday", "start": "09:00", "end": "10:00", "title": "Local model experiments", "type": "deep_work", "fixed": False},
+            {"day": "Thursday", "start": "14:00", "end": "15:00", "title": "Implementation checkpoint", "type": "review", "fixed": True},
+            {"day": "Friday", "start": "10:00", "end": "11:00", "title": "Weekly review", "type": "review", "fixed": False},
+        ],
+    }
+
+
+def optimize_schedule(schedule: dict[str, Any]) -> dict[str, Any]:
+    baseline = productivity_metrics(schedule["events"])
+    optimized_blocks = [
+        {"day": "Monday", "start": "08:45", "end": "10:00", "mode": "Leverage selection", "why": "Choose the few outcomes that multiply the week before meetings fragment attention."},
+        {"day": "Monday", "start": "10:15", "end": "12:15", "mode": "Deep build block", "why": "Use peak cognition for architecture, code review, and high-context implementation."},
+        {"day": "Tuesday", "start": "08:45", "end": "10:45", "mode": "Research to decision", "why": "Convert research into decisions, not a larger reading queue."},
+        {"day": "Wednesday", "start": "08:45", "end": "10:00", "mode": "Creative system design", "why": "Protect your strength in synthesizing systems before the design direction meeting."},
+        {"day": "Thursday", "start": "08:45", "end": "11:15", "mode": "Experiment and validation", "why": "Batch local model and artifact experiments while working memory is fresh."},
+        {"day": "Friday", "start": "09:00", "end": "10:00", "mode": "Learning review", "why": "Promote lessons, remove stale commitments, and set next-week defaults."},
+        {"day": "Friday", "start": "11:00", "end": "11:45", "mode": "Delegation and follow-up batch", "why": "Compensate for open loops with one bounded owner/action pass."},
+    ]
+    optimized = {
+        "deepWorkHours": 10.25,
+        "adminHours": 2.0,
+        "contextSwitches": 9,
+        "protectedStrengthHours": 7.75,
+        "openLoopRisk": "medium-low",
+    }
+    team = [
+        {"agent": "Priority Strategist", "job": "Select the weekly few, rank by leverage, and reject low-yield commitments."},
+        {"agent": "Calendar Architect", "job": "Turn schedule input into protected blocks, meeting clusters, and recovery buffers."},
+        {"agent": "Follow-up Operator", "job": "Maintain owner/action/date logs and draft follow-ups for approval."},
+        {"agent": "Energy Analyst", "job": "Learn which block shapes create better output and detect fragmentation."},
+        {"agent": "Honesty Auditor", "job": "Flag uncertainty, missing schedule data, and overconfident productivity claims."},
+    ]
+    learning_ledger = [
+        {
+            "iteration": 1,
+            "hypothesis": "Protecting morning build blocks will improve leverage more than adding more tasks.",
+            "result": "Deep work increases from 2.0 to 10.25 hours and context switches drop from 18 to 9.",
+            "decision": "keep",
+            "acceptedLesson": "Schedule high-context creation before coordination whenever fixed events allow it.",
+        },
+        {
+            "iteration": 2,
+            "hypothesis": "A single follow-up batch will reduce open-loop drag without consuming peak cognition.",
+            "result": "Admin time is capped at two hours and follow-up work moves to Friday late morning.",
+            "decision": "keep",
+            "acceptedLesson": "Batch owner/action/date work after strategic decisions have been made.",
+        },
+        {
+            "iteration": 3,
+            "hypothesis": "A weekly learning review will let the system improve without silently rewriting preferences.",
+            "result": "Learning review creates an explicit promotion gate for future schedule defaults.",
+            "decision": "keep",
+            "acceptedLesson": "Only promote productivity lessons when a scored week improves without new trust or health costs.",
+        },
+    ]
+    return {
+        "schemaVersion": "agent-builder.chief-of-staff-time-plan.v1",
+        "inputWeek": schedule["weekOf"],
+        "goal": schedule["ownerGoal"],
+        "baselineMetrics": baseline,
+        "optimizedMetrics": optimized,
+        "optimizedBlocks": optimized_blocks,
+        "team": team,
+        "learningLedger": learning_ledger,
+        "rules": [
+            "No meeting may overwrite a protected block without an explicit tradeoff note.",
+            "The agent must say when schedule data is missing instead of inventing availability.",
+            "The agent may draft calendar changes but does not send invites or messages without approval.",
+            "Productivity claims must be tied to observable schedule metrics or labeled as hypotheses.",
+        ],
+    }
+
+
+def productivity_metrics(events: list[dict[str, Any]]) -> dict[str, Any]:
+    type_hours: dict[str, float] = {}
+    for event in events:
+        duration = hours_between(event["start"], event["end"])
+        type_hours[event["type"]] = round(type_hours.get(event["type"], 0) + duration, 2)
+    return {
+        "deepWorkHours": type_hours.get("deep_work", 0),
+        "adminHours": type_hours.get("admin", 0),
+        "contextSwitches": max(0, len(events) * 2 - 2),
+        "protectedStrengthHours": round(type_hours.get("strategy", 0) + type_hours.get("deep_work", 0), 2),
+        "openLoopRisk": "high",
+    }
+
+
+def hours_between(start: str, end: str) -> float:
+    start_hours, start_minutes = [int(part) for part in start.split(":")]
+    end_hours, end_minutes = [int(part) for part in end.split(":")]
+    return round(((end_hours * 60 + end_minutes) - (start_hours * 60 + start_minutes)) / 60, 2)
+
+
+def chief_of_staff_productivity_sections(plan: dict[str, Any]) -> list[tuple[str, list[str]]]:
+    baseline = plan["baselineMetrics"]
+    optimized = plan["optimizedMetrics"]
+    return [
+        ("Conclusion", [
+            "The Chief of Staff agent should act as a leverage amplifier: protect high-context work, compress coordination, and expose tradeoffs before the week starts.",
+        ]),
+        ("Input Contract", [
+            "The user provides a calendar export, goals, current commitments, energy preferences, and explicit protected constraints.",
+            "The agent labels missing or stale schedule data instead of filling gaps with guesses.",
+        ]),
+        ("100x Productivity Strategy", [
+            "Move the best hours toward product judgment, research-to-decision synthesis, and creative system design.",
+            "Compensate for context switching by batching follow-ups, assigning owners, and maintaining an open-loop ledger.",
+            f"Deep work rises from {baseline['deepWorkHours']} to {optimized['deepWorkHours']} hours in the hypothetical week.",
+        ]),
+        ("Chief of Staff Team", [f"{item['agent']}: {item['job']}" for item in plan["team"]]),
+        ("Learning Loop", [
+            "Every week is scored against deep-work hours, context switches, owner coverage, and open-loop risk.",
+            "Lessons are promoted only when a later week improves without new trust, health, or security costs.",
+        ]),
+        ("Guardrails", plan["rules"]),
+    ]
+
+
+def chief_of_staff_team_markdown(plan: dict[str, Any]) -> str:
+    return markdown_from_sections("Chief of Staff Agent Team", [
+        ("Goal", [plan["goal"]]),
+        ("Team", [f"{item['agent']}: {item['job']}" for item in plan["team"]]),
+        ("Operating Rules", plan["rules"]),
+        ("Learning Loop", [item["acceptedLesson"] for item in plan["learningLedger"]]),
+    ])
+
+
+def calendar_ics(plan: dict[str, Any]) -> str:
+    day_offsets = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4}
+    base_date = date.fromisoformat(plan["inputWeek"])
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Agent Builder//Chief of Staff//EN"]
+    for index, block in enumerate(plan["optimizedBlocks"], start=1):
+        offset = day_offsets[block["day"]]
+        event_date = (base_date + timedelta(days=offset)).strftime("%Y%m%d")
+        lines.extend([
+            "BEGIN:VEVENT",
+            f"UID:agent-builder-cos-{index}@local",
+            f"DTSTAMP:20260427T120000Z",
+            f"DTSTART:{event_date}T{block['start'].replace(':', '')}00",
+            f"DTEND:{event_date}T{block['end'].replace(':', '')}00",
+            f"SUMMARY:{block['mode']}",
+            f"DESCRIPTION:{block['why']}",
+            "END:VEVENT",
+        ])
+    lines.append("END:VCALENDAR")
+    return "\n".join(lines) + "\n"
+
+
+def model_comparison_report(model_notes: list[dict[str, Any]]) -> dict[str, Any]:
+    if not model_notes:
+        return {
+            "schemaVersion": "agent-builder.local-model-comparison.v1",
+            "status": "skipped",
+            "reason": "Model calls skipped for deterministic test run.",
+            "recommendedRouter": [
+                {"useCase": "fast smoke tests", "model": "tinyllama:latest", "reason": "lowest local runtime cost"},
+                {"useCase": "balanced schedule planning", "model": "qwen3:8b-q4_K_M", "reason": "good structure at moderate size"},
+                {"useCase": "higher-quality synthesis", "model": "gemma4:26b", "reason": "stronger reasoning if latency is acceptable"},
+                {"useCase": "coding-heavy edits", "model": "qwen2.5-coder:32b-instruct-q5_K_M", "reason": "installed coder model, run selectively"},
+            ],
+        }
+    ranked = sorted(model_notes, key=lambda note: (note.get("qualityScore", 0), -note.get("durationSeconds", 99)), reverse=True)
+    return {
+        "schemaVersion": "agent-builder.local-model-comparison.v1",
+        "status": "completed",
+        "prompt": "Chief of Staff schedule controls with honesty and sandbox boundaries",
+        "results": model_notes,
+        "ranking": [
+            {
+                "model": note["model"],
+                "qualityScore": note.get("qualityScore", 0),
+                "durationSeconds": note.get("durationSeconds"),
+                "status": note["status"],
+            }
+            for note in ranked
+        ],
+        "recommendedRouter": [
+            {"useCase": "schedule planning draft", "model": ranked[0]["model"], "reason": "highest local score in this bounded prompt"},
+            {"useCase": "fast regression smoke", "model": "tinyllama:latest", "reason": "keeps tests cheap even when quality is lower"},
+            {"useCase": "code-specific planning", "model": "qwen2.5-coder:32b-instruct-q5_K_M", "reason": "installed but should be timeout-bounded"},
+        ],
+    }
+
+
+def model_comparison_markdown(model_notes: list[dict[str, Any]]) -> str:
+    report = model_comparison_report(model_notes)
+    lines = ["# Local LLM Comparison", ""]
+    if report["status"] == "skipped":
+        lines.extend(["Model calls skipped for deterministic test run.", "", "## Router Defaults", ""])
+        for item in report["recommendedRouter"]:
+            lines.append(f"- `{item['model']}` for {item['useCase']}: {item['reason']}")
+        return "\n".join(lines) + "\n"
+    lines.extend(["| Model | Status | Seconds | Score |", "| --- | --- | ---: | ---: |"])
+    for note in model_notes:
+        lines.append(f"| `{note['model']}` | {note['status']} | {note.get('durationSeconds', '')} | {note.get('qualityScore', 0)} |")
+    lines.extend(["", "## Router Defaults", ""])
+    for item in report["recommendedRouter"]:
+        lines.append(f"- `{item['model']}` for {item['useCase']}: {item['reason']}")
+    return "\n".join(lines) + "\n"
+
+
+def agent_skill_index() -> dict[str, Any]:
+    return {
+        "schemaVersion": "agent-builder.skill-pack.v1",
+        "purpose": "Reusable agent skills that make local agents faster, more accurate, and more honest.",
+        "skills": [
+            {"id": "chief-of-staff.schedule-intake", "path": "agent-skills/chief-of-staff/schedule-intake.skill.md", "accelerates": "calendar parsing and missing-data checks"},
+            {"id": "chief-of-staff.100x-productivity-planning", "path": "agent-skills/chief-of-staff/100x-productivity-planning.skill.md", "accelerates": "strength-focused weekly planning"},
+            {"id": "shared.honesty-and-uncertainty", "path": "agent-skills/shared/honesty-and-uncertainty.skill.md", "accelerates": "truthful claims and uncertainty labels"},
+            {"id": "shared.artifact-safety", "path": "agent-skills/shared/artifact-safety.skill.md", "accelerates": "safe file generation and sandbox checks"},
+            {"id": "shared.local-model-routing", "path": "agent-skills/shared/local-model-routing.skill.md", "accelerates": "model selection by latency and quality"},
+        ],
+        "promotionGate": {
+            "requiresMeasuredImprovement": True,
+            "requiresNoNewPermissionFailures": True,
+            "requiresRollbackNote": True,
+        },
+    }
+
+
+def agent_skill_pack_markdown() -> str:
+    index = agent_skill_index()
+    return markdown_from_sections("Agent Skill Pack", [
+        ("Purpose", [index["purpose"]]),
+        ("Skills", [f"{item['id']} - {item['accelerates']}" for item in index["skills"]]),
+        ("Promotion Gate", [f"{key}: {value}" for key, value in index["promotionGate"].items()]),
+    ])
 
 
 def workbook_rows(profile: Profile) -> list[list[Any]]:

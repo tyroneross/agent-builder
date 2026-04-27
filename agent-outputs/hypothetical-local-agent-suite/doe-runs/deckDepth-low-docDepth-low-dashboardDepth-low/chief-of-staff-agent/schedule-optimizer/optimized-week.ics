@@ -1,0 +1,60 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Agent Builder//Chief of Staff//EN
+BEGIN:VEVENT
+UID:agent-builder-cos-1@local
+DTSTAMP:20260427T120000Z
+DTSTART:20260427T084500
+DTEND:20260427T100000
+SUMMARY:Leverage selection
+DESCRIPTION:Choose the few outcomes that multiply the week before meetings fragment attention.
+END:VEVENT
+BEGIN:VEVENT
+UID:agent-builder-cos-2@local
+DTSTAMP:20260427T120000Z
+DTSTART:20260427T101500
+DTEND:20260427T121500
+SUMMARY:Deep build block
+DESCRIPTION:Use peak cognition for architecture, code review, and high-context implementation.
+END:VEVENT
+BEGIN:VEVENT
+UID:agent-builder-cos-3@local
+DTSTAMP:20260427T120000Z
+DTSTART:20260428T084500
+DTEND:20260428T104500
+SUMMARY:Research to decision
+DESCRIPTION:Convert research into decisions, not a larger reading queue.
+END:VEVENT
+BEGIN:VEVENT
+UID:agent-builder-cos-4@local
+DTSTAMP:20260427T120000Z
+DTSTART:20260429T084500
+DTEND:20260429T100000
+SUMMARY:Creative system design
+DESCRIPTION:Protect your strength in synthesizing systems before the design direction meeting.
+END:VEVENT
+BEGIN:VEVENT
+UID:agent-builder-cos-5@local
+DTSTAMP:20260427T120000Z
+DTSTART:20260430T084500
+DTEND:20260430T111500
+SUMMARY:Experiment and validation
+DESCRIPTION:Batch local model and artifact experiments while working memory is fresh.
+END:VEVENT
+BEGIN:VEVENT
+UID:agent-builder-cos-6@local
+DTSTAMP:20260427T120000Z
+DTSTART:20260501T090000
+DTEND:20260501T100000
+SUMMARY:Learning review
+DESCRIPTION:Promote lessons, remove stale commitments, and set next-week defaults.
+END:VEVENT
+BEGIN:VEVENT
+UID:agent-builder-cos-7@local
+DTSTAMP:20260427T120000Z
+DTSTART:20260501T110000
+DTEND:20260501T114500
+SUMMARY:Delegation and follow-up batch
+DESCRIPTION:Compensate for open loops with one bounded owner/action pass.
+END:VEVENT
+END:VCALENDAR

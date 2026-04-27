@@ -2,6 +2,35 @@
 
 Date: 2026-04-27
 
+## Follow-up Update
+
+Latest artifact score: `1312/1362`.
+
+The PowerPoint deck path was rebuilt with local `pptxgenjs` instead of fragile
+handwritten OOXML. The current deck passes zip validation and the bundled
+presentation package-quality check with no placeholder text, slide-number
+placeholders, zero-byte media, or output-hygiene failures.
+
+New Chief of Staff outputs:
+
+- `agent-outputs/hypothetical-local-agent-suite/final/chief-of-staff-agent/schedule-optimizer/input-schedule.json`
+- `agent-outputs/hypothetical-local-agent-suite/final/chief-of-staff-agent/schedule-optimizer/time-block-plan.json`
+- `agent-outputs/hypothetical-local-agent-suite/final/chief-of-staff-agent/schedule-optimizer/weekly-time-plan.docx`
+- `agent-outputs/hypothetical-local-agent-suite/final/chief-of-staff-agent/schedule-optimizer/optimized-week.ics`
+- `agent-outputs/hypothetical-local-agent-suite/final/chief-of-staff-agent/schedule-optimizer/learning-ledger.json`
+
+New local-model comparison output:
+
+- `agent-outputs/hypothetical-local-agent-suite/final/model-comparison-agent/local-llm-review/model-comparison.md`
+
+New source skill files:
+
+- `agent-skills/chief-of-staff/schedule-intake.skill.md`
+- `agent-skills/chief-of-staff/100x-productivity-planning.skill.md`
+- `agent-skills/shared/honesty-and-uncertainty.skill.md`
+- `agent-skills/shared/artifact-safety.skill.md`
+- `agent-skills/shared/local-model-routing.skill.md`
+
 ## Summary
 
 The agent suite now produces real, repo-local artifacts under:

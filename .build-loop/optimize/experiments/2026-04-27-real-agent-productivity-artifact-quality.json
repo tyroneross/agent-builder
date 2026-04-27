@@ -1,0 +1,15 @@
+{
+  "target": "real-agent-productivity-artifact-quality",
+  "scope": "scripts/run-artifact-agents.py,scripts/write-pptx.mjs,tests/*.mjs,package.json,docs/*.md,agent-skills/**/*.md,agent-outputs/**/*.md,agent-outputs/**/*.json",
+  "metric_cmd": "npm run agents:artifacts:score",
+  "guard_cmd": "npm test && npm run build && npm audit --audit-level=moderate",
+  "budget": 20,
+  "direction": "higher",
+  "baseline_commit": "da23269",
+  "baseline_value": 731.0,
+  "best_value": 1312.0,
+  "prompt_version": "v1",
+  "started_at": "2026-04-27T10:05:58.440886+00:00Z",
+  "iterations_kept": 1,
+  "iterations_total": 1
+}

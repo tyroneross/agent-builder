@@ -1,0 +1,23 @@
+[
+  {
+    "iteration": 1,
+    "hypothesis": "Protecting morning build blocks will improve leverage more than adding more tasks.",
+    "result": "Deep work increases from 2.0 to 10.25 hours and context switches drop from 18 to 9.",
+    "decision": "keep",
+    "acceptedLesson": "Schedule high-context creation before coordination whenever fixed events allow it."
+  },
+  {
+    "iteration": 2,
+    "hypothesis": "A single follow-up batch will reduce open-loop drag without consuming peak cognition.",
+    "result": "Admin time is capped at two hours and follow-up work moves to Friday late morning.",
+    "decision": "keep",
+    "acceptedLesson": "Batch owner/action/date work after strategic decisions have been made."
+  },
+  {
+    "iteration": 3,
+    "hypothesis": "A weekly learning review will let the system improve without silently rewriting preferences.",
+    "result": "Learning review creates an explicit promotion gate for future schedule defaults.",
+    "decision": "keep",
+    "acceptedLesson": "Only promote productivity lessons when a scored week improves without new trust or health costs."
+  }
+]

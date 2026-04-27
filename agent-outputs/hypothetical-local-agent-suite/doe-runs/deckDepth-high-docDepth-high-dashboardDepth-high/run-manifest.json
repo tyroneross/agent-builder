@@ -15,6 +15,16 @@
     "writing-agent/executive-brief/domain-learning-agent-brief.docx",
     "writing-agent/executive-brief/domain-learning-agent-brief.md",
     "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+    "chief-of-staff-agent/schedule-optimizer/input-schedule.json",
+    "chief-of-staff-agent/schedule-optimizer/time-block-plan.json",
+    "chief-of-staff-agent/schedule-optimizer/learning-ledger.json",
+    "chief-of-staff-agent/schedule-optimizer/chief-of-staff-team.md",
+    "chief-of-staff-agent/schedule-optimizer/optimized-week.ics",
+    "chief-of-staff-agent/schedule-optimizer/weekly-time-plan.docx",
+    "model-comparison-agent/local-llm-review/model-comparison.json",
+    "model-comparison-agent/local-llm-review/model-comparison.md",
+    "agent-skill-pack/skills-index.json",
+    "agent-skill-pack/README.md",
     "data-analysis-agent/usage-review/metrics-workbook.xlsx",
     "data-analysis-agent/usage-review/metrics.csv",
     "data-analysis-agent/usage-review/analysis-summary.md",
@@ -26,26 +36,7 @@
     "code-review-agent/security-review/risk-summary.json",
     "code-review-agent/security-review/findings.md"
   ],
-  "models": [
-    {
-      "model": "qwen3:8b-q4_K_M",
-      "status": "ok",
-      "durationSeconds": 0.56,
-      "response": "A security or quality control measure for local agents generating files in a sandbox is implementing strict input validation and output sanitization to prevent malicious or malformed file creation."
-    },
-    {
-      "model": "gemma4:26b",
-      "status": "ok",
-      "durationSeconds": 0.48,
-      "response": "Implement automated file integrity monitoring and malware scanning within the sandbox to detect unauthorized modifications or malicious payloads before they exit the isolated environment."
-    },
-    {
-      "model": "tinyllama:latest",
-      "status": "ok",
-      "durationSeconds": 0.07,
-      "response": "Satisfactory Agent for Local Agents Generating Files in Sandbox"
-    }
-  ],
+  "models": [],
   "constraints": {
     "outputRoot": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-high-docDepth-high-dashboardDepth-high",
     "internetDownloads": "disabled",

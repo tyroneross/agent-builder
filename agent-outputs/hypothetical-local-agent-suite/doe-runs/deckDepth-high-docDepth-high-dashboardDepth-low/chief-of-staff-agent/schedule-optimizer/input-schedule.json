@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "agent-builder.schedule-input.v1",
+  "ownerGoal": "Become 100x more productive by spending more time on high-leverage strengths and less time manually coordinating low-leverage work.",
+  "strengths": [
+    "rapid product judgment",
+    "connecting research to implementation",
+    "creative system design",
+    "high-context review and prioritization"
+  ],
+  "compensateFor": [
+    "context switching",
+    "open-loop accumulation",
+    "calendar fragmentation",
+    "manual follow-up tracking"
+  ],
+  "weekOf": "2026-04-27",
+  "events": [
+    {
+      "day": "Monday",
+      "start": "09:00",
+      "end": "09:45",
+      "title": "Inbox and open loops",
+      "type": "admin",
+      "fixed": false
+    },
+    {
+      "day": "Monday",
+      "start": "10:00",
+      "end": "11:00",
+      "title": "Agent builder review",
+      "type": "strategy",
+      "fixed": true
+    },
+    {
+      "day": "Monday",
+      "start": "13:00",
+      "end": "14:00",
+      "title": "Research synthesis",
+      "type": "deep_work",
+      "fixed": false
+    },
+    {
+      "day": "Tuesday",
+      "start": "09:30",
+      "end": "10:15",
+      "title": "Project triage",
+      "type": "coordination",
+      "fixed": true
+    },
+    {
+      "day": "Tuesday",
+      "start": "11:00",
+      "end": "12:00",
+      "title": "Docs and artifact QA",
+      "type": "review",
+      "fixed": false
+    },
+    {
+      "day": "Wednesday",
+      "start": "10:00",
+      "end": "11:30",
+      "title": "Design direction",
+      "type": "strategy",
+      "fixed": true
+    },
+    {
+      "day": "Wednesday",
+      "start": "15:00",
+      "end": "15:45",
+      "title": "Follow-ups",
+      "type": "admin",
+      "fixed": false
+    },
+    {
+      "day": "Thursday",
+      "start": "09:00",
+      "end": "10:00",
+      "title": "Local model experiments",
+      "type": "deep_work",
+      "fixed": false
+    },
+    {
+      "day": "Thursday",
+      "start": "14:00",
+      "end": "15:00",
+      "title": "Implementation checkpoint",
+      "type": "review",
+      "fixed": true
+    },
+    {
+      "day": "Friday",
+      "start": "10:00",
+      "end": "11:00",
+      "title": "Weekly review",
+      "type": "review",
+      "fixed": false
+    }
+  ]
+}
