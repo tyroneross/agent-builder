@@ -2,6 +2,40 @@
 
 A comprehensive, modular skill for designing, evaluating, and improving agentic harnesses — the layer around the model that turns a language model into a product.
 
+## Local visual builder
+
+This repo now includes a local Next.js app for turning a simple flowchart into buildable agent files.
+
+Run it:
+
+```bash
+npm install
+npm run serve
+```
+
+Open `http://localhost:3028`.
+
+First-version workflow:
+
+1. Choose one of four common patterns: Solo Tool Agent, Approval Workflow, Research Orchestrator, or Evaluator Optimizer.
+2. Drag and connect nodes on the flow canvas.
+3. Edit node contracts: role, description, inputs, outputs, tools, and permission tier.
+4. Pick a target runtime and framework recommendation.
+5. Preview the generated YAML/JSON/files.
+6. Click **Build Agent**.
+
+The build route writes local artifacts under `generated/agents/<slug>/`:
+
+- `agent.yaml`
+- `manifest.json`
+- `system-prompt.md`
+- `tools.json`
+- `evals/golden-tasks.json`
+- `README.md`
+- `sources.md`
+
+The build route is intentionally local-first and constrained: it does not accept arbitrary output paths, and generated artifacts are ignored by git.
+
 **Two bodies of knowledge, one skill:**
 
 - **Methodology** — *how to decide*. Principles, shapes, tools, state, context, extensibility, UX, design playbook, evaluation playbook, output patterns, and cross-client portability notes. 11 topic files.
@@ -119,4 +153,3 @@ Primary Codex surface:
 - MCP config from `(none)` when present
 
 Install the package from this package root using your current Codex plugin install flow. The Codex package is additive only: Claude-specific hooks, slash commands, and agent wiring remain unchanged for Claude Code.
-
