@@ -1,0 +1,41 @@
+{
+  "name": "agent-builder",
+  "version": "0.1.0",
+  "description": "Design, evaluate, and improve agentic harnesses \u2014 methodology playbooks plus an empirical catalog of architectures, frameworks, memory substrates, and production lab patterns.",
+  "author": {
+    "name": "Tyrone Ross"
+  },
+  "homepage": "https://github.com/tyroneross/RossLabs-AI-Toolkit/tree/main/skills/agent-builder",
+  "repository": "https://github.com/tyroneross/RossLabs-AI-Toolkit",
+  "license": "MIT",
+  "keywords": [
+    "agent",
+    "harness",
+    "architecture",
+    "design",
+    "evaluation",
+    "multi-agent",
+    "tools",
+    "permissions",
+    "memory",
+    "observability",
+    "langgraph",
+    "crewai",
+    "pydantic-ai",
+    "smolagents",
+    "dspy",
+    "autogen"
+  ],
+  "skills": "./",
+  "interface": {
+    "displayName": "Agent Builder",
+    "shortDescription": "Design, evaluate, and improve agentic harnesses \u2014 methodology playbooks plus an empirical catalog of architectures, frameworks, memory substrates, and production lab patterns.",
+    "longDescription": "Design, evaluate, and improve agentic harnesses \u2014 methodology playbooks plus an empirical catalog of architectures, frameworks, memory substrates, and production lab patterns.",
+    "developerName": "Ross Labs",
+    "category": "Coding",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  }
+}
