@@ -1,0 +1,394 @@
+{
+  "design": "2^3 full factorial with real docx, pptx, xlsx, html, pdf, csv, markdown, and json outputs",
+  "response": "validated artifact score",
+  "factors": [
+    {
+      "name": "deckDepth",
+      "levels": {
+        "low": 4,
+        "high": 7
+      }
+    },
+    {
+      "name": "docDepth",
+      "levels": {
+        "low": 3,
+        "high": 6
+      }
+    },
+    {
+      "name": "dashboardDepth",
+      "levels": {
+        "low": 3,
+        "high": 5
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "deckDepth-low-docDepth-low-dashboardDepth-low",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-low-docDepth-low-dashboardDepth-low",
+      "profile": {
+        "name": "deckDepth-low-docDepth-low-dashboardDepth-low",
+        "deck_slides": 4,
+        "doc_sections": 3,
+        "dashboard_widgets": 3,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 112,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "low",
+        "docDepth": "low",
+        "dashboardDepth": "low"
+      }
+    },
+    {
+      "runId": "deckDepth-low-docDepth-low-dashboardDepth-high",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-low-docDepth-low-dashboardDepth-high",
+      "profile": {
+        "name": "deckDepth-low-docDepth-low-dashboardDepth-high",
+        "deck_slides": 4,
+        "doc_sections": 3,
+        "dashboard_widgets": 5,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 114,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "low",
+        "docDepth": "low",
+        "dashboardDepth": "high"
+      }
+    },
+    {
+      "runId": "deckDepth-low-docDepth-high-dashboardDepth-low",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-low-docDepth-high-dashboardDepth-low",
+      "profile": {
+        "name": "deckDepth-low-docDepth-high-dashboardDepth-low",
+        "deck_slides": 4,
+        "doc_sections": 6,
+        "dashboard_widgets": 3,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 115,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "low",
+        "docDepth": "high",
+        "dashboardDepth": "low"
+      }
+    },
+    {
+      "runId": "deckDepth-low-docDepth-high-dashboardDepth-high",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-low-docDepth-high-dashboardDepth-high",
+      "profile": {
+        "name": "deckDepth-low-docDepth-high-dashboardDepth-high",
+        "deck_slides": 4,
+        "doc_sections": 6,
+        "dashboard_widgets": 5,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 117,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "low",
+        "docDepth": "high",
+        "dashboardDepth": "high"
+      }
+    },
+    {
+      "runId": "deckDepth-high-docDepth-low-dashboardDepth-low",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-high-docDepth-low-dashboardDepth-low",
+      "profile": {
+        "name": "deckDepth-high-docDepth-low-dashboardDepth-low",
+        "deck_slides": 7,
+        "doc_sections": 3,
+        "dashboard_widgets": 3,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 115,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "high",
+        "docDepth": "low",
+        "dashboardDepth": "low"
+      }
+    },
+    {
+      "runId": "deckDepth-high-docDepth-low-dashboardDepth-high",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-high-docDepth-low-dashboardDepth-high",
+      "profile": {
+        "name": "deckDepth-high-docDepth-low-dashboardDepth-high",
+        "deck_slides": 7,
+        "doc_sections": 3,
+        "dashboard_widgets": 5,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 117,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "high",
+        "docDepth": "low",
+        "dashboardDepth": "high"
+      }
+    },
+    {
+      "runId": "deckDepth-high-docDepth-high-dashboardDepth-low",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-high-docDepth-high-dashboardDepth-low",
+      "profile": {
+        "name": "deckDepth-high-docDepth-high-dashboardDepth-low",
+        "deck_slides": 7,
+        "doc_sections": 6,
+        "dashboard_widgets": 3,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 118,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "high",
+        "docDepth": "high",
+        "dashboardDepth": "low"
+      }
+    },
+    {
+      "runId": "deckDepth-high-docDepth-high-dashboardDepth-high",
+      "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-high-docDepth-high-dashboardDepth-high",
+      "profile": {
+        "name": "deckDepth-high-docDepth-high-dashboardDepth-high",
+        "deck_slides": 7,
+        "doc_sections": 6,
+        "dashboard_widgets": 5,
+        "include_security_pack": true
+      },
+      "outputs": [
+        "powerpoint-deck-builder/board-update/deck.pptx",
+        "powerpoint-deck-builder/board-update/slides.json",
+        "powerpoint-deck-builder/board-update/speaker-notes.md",
+        "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+        "writing-agent/executive-brief/domain-learning-agent-brief.md",
+        "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+        "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+        "data-analysis-agent/usage-review/metrics.csv",
+        "data-analysis-agent/usage-review/analysis-summary.md",
+        "app-builder-agent/html-dashboard/index.html",
+        "app-builder-agent/html-dashboard/dashboard-data.json",
+        "research-brief-agent/security-research/source-index.json",
+        "research-brief-agent/security-research/research-brief.md",
+        "research-brief-agent/security-research/security-brief.pdf",
+        "code-review-agent/security-review/risk-summary.json",
+        "code-review-agent/security-review/findings.md",
+        "run-manifest.json",
+        "artifact-index.html"
+      ],
+      "score": 120,
+      "maxScore": 122,
+      "passed": true,
+      "factors": {
+        "deckDepth": "high",
+        "docDepth": "high",
+        "dashboardDepth": "high"
+      }
+    }
+  ],
+  "best": {
+    "runId": "deckDepth-high-docDepth-high-dashboardDepth-high",
+    "root": "/Users/tyroneross/dev/git-folder/agent-builder/agent-outputs/hypothetical-local-agent-suite/doe-runs/deckDepth-high-docDepth-high-dashboardDepth-high",
+    "profile": {
+      "name": "deckDepth-high-docDepth-high-dashboardDepth-high",
+      "deck_slides": 7,
+      "doc_sections": 6,
+      "dashboard_widgets": 5,
+      "include_security_pack": true
+    },
+    "outputs": [
+      "powerpoint-deck-builder/board-update/deck.pptx",
+      "powerpoint-deck-builder/board-update/slides.json",
+      "powerpoint-deck-builder/board-update/speaker-notes.md",
+      "writing-agent/executive-brief/domain-learning-agent-brief.docx",
+      "writing-agent/executive-brief/domain-learning-agent-brief.md",
+      "chief-of-staff-agent/weekly-ops/operating-plan.docx",
+      "data-analysis-agent/usage-review/metrics-workbook.xlsx",
+      "data-analysis-agent/usage-review/metrics.csv",
+      "data-analysis-agent/usage-review/analysis-summary.md",
+      "app-builder-agent/html-dashboard/index.html",
+      "app-builder-agent/html-dashboard/dashboard-data.json",
+      "research-brief-agent/security-research/source-index.json",
+      "research-brief-agent/security-research/research-brief.md",
+      "research-brief-agent/security-research/security-brief.pdf",
+      "code-review-agent/security-review/risk-summary.json",
+      "code-review-agent/security-review/findings.md",
+      "run-manifest.json",
+      "artifact-index.html"
+    ],
+    "score": 120,
+    "maxScore": 122,
+    "passed": true,
+    "factors": {
+      "deckDepth": "high",
+      "docDepth": "high",
+      "dashboardDepth": "high"
+    }
+  },
+  "effects": [
+    {
+      "factor": "deckDepth",
+      "effect": 3.0
+    },
+    {
+      "factor": "docDepth",
+      "effect": 3.0
+    },
+    {
+      "factor": "dashboardDepth",
+      "effect": 2.0
+    }
+  ]
+}

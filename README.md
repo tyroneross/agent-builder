@@ -43,6 +43,7 @@ npm run agent:scan
 npm run agent:scan -- --run --llm=fixture
 npm run agent:scan -- --run --llm=ollama --model=tinyllama:latest
 npm run agent:doe
+npm run agents:artifacts:doe
 ```
 
 The scan can run from the terminal or through the UI's **Agent structures** section. Current structures include Chief of Staff, PowerPoint Deck Builder, Writing, App Builder, Research Brief, Code Review, and Data Analysis agents. The terminal scan reports graph shape, tool/eval counts, research-alignment checks, and optional sandbox e2e results.
@@ -59,6 +60,14 @@ The DOE runner (`npm run agent:doe`) runs a `2^3` full factorial test over artif
 Sandbox runs default to `/tmp` to avoid macOS app-sandbox permission drift under `/var/folders`. Override with `AGENT_BUILDER_TMPDIR=/path/to/tmp` when needed.
 
 See `docs/agent-optimization-report.md` for the optimization log, DOE findings, and test outputs.
+
+Real artifact runs:
+
+```bash
+npm run agents:artifacts -- --doe --models qwen3:8b-q4_K_M,gemma4:26b,tinyllama:latest
+```
+
+This writes actual `.pptx`, `.docx`, `.xlsx`, `.csv`, `.pdf`, `.html`, `.json`, and `.md` outputs under `agent-outputs/hypothetical-local-agent-suite/`. See `docs/real-output-artifact-report.md`.
 
 **Two bodies of knowledge, one skill:**
 

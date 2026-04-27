@@ -1,0 +1,4 @@
+iteration	commit	metric	delta	status	description	hypothesis
+0	217361c	586.0000	0.0	baseline	initial state	baseline real-output artifact suite
+1	217361c	659.0000	+73.0000	keep	Add PDF and CSV real artifacts with validation	Additional portable outputs improve the real artifact suite while preserving security checks and tests.
+2	217361c	731.0000	+72.0000	keep	Add local artifact index dashboard	A local index dashboard makes generated outputs easier to inspect while keeping everything self-contained.

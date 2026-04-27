@@ -1,0 +1,15 @@
+{
+  "target": "real-agent-artifact-output",
+  "scope": "scripts/run-artifact-agents.py,tests/artifact-agents.test.mjs,package.json,agent-outputs/**/*.md,docs/*.md",
+  "metric_cmd": "npm run agents:artifacts:score",
+  "guard_cmd": "npm test && npm run build",
+  "budget": 5,
+  "direction": "higher",
+  "baseline_commit": "217361c",
+  "baseline_value": 586.0,
+  "best_value": 731.0,
+  "prompt_version": "v1",
+  "started_at": "2026-04-27T09:52:25.615811+00:00Z",
+  "iterations_kept": 2,
+  "iterations_total": 2
+}

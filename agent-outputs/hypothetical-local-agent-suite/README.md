@@ -1,0 +1,35 @@
+# Hypothetical Local Agent Suite
+
+Score: 731/781
+Passed: True
+
+## Final Outputs
+
+- `powerpoint-deck-builder/board-update/deck.pptx`
+- `powerpoint-deck-builder/board-update/slides.json`
+- `powerpoint-deck-builder/board-update/speaker-notes.md`
+- `writing-agent/executive-brief/domain-learning-agent-brief.docx`
+- `writing-agent/executive-brief/domain-learning-agent-brief.md`
+- `chief-of-staff-agent/weekly-ops/operating-plan.docx`
+- `data-analysis-agent/usage-review/metrics-workbook.xlsx`
+- `data-analysis-agent/usage-review/metrics.csv`
+- `data-analysis-agent/usage-review/analysis-summary.md`
+- `app-builder-agent/html-dashboard/index.html`
+- `app-builder-agent/html-dashboard/dashboard-data.json`
+- `research-brief-agent/security-research/source-index.json`
+- `research-brief-agent/security-research/research-brief.md`
+- `research-brief-agent/security-research/security-brief.pdf`
+- `code-review-agent/security-review/risk-summary.json`
+- `code-review-agent/security-review/findings.md`
+- `run-manifest.json`
+- `artifact-index.html`
+
+## Local Model Notes
+
+- `qwen3:8b-q4_K_M`: ok - A security or quality control measure for local agents generating files in a sandbox is implementing strict input validation and output sanitization to prevent malicious or malformed file creation.
+- `gemma4:26b`: ok - Implement automated file integrity monitoring and malware scanning within the sandbox to detect unauthorized modifications or malicious payloads before they exit the isolated environment.
+- `tinyllama:latest`: ok - Satisfactory Agent for Local Agents Generating Files in Sandbox
+
+## DOE
+
+Best run: `deckDepth-high-docDepth-high-dashboardDepth-high`

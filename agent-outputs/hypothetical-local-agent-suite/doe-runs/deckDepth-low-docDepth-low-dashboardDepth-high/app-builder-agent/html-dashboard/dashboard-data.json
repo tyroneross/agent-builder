@@ -1,0 +1,30 @@
+{
+  "cards": [
+    {
+      "label": "Artifact score",
+      "value": 100,
+      "trend": "validated"
+    },
+    {
+      "label": "Office files",
+      "value": 3,
+      "trend": "pptx/docx/xlsx"
+    },
+    {
+      "label": "Security checks",
+      "value": "pass",
+      "trend": "no macros"
+    },
+    {
+      "label": "Local models",
+      "value": 3,
+      "trend": "qwen/gemma/tinyllama"
+    },
+    {
+      "label": "DOE runs",
+      "value": 8,
+      "trend": "full factorial"
+    }
+  ],
+  "updated": "2026-04-27"
+}
