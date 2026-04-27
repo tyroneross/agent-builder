@@ -19,32 +19,37 @@ import {
   Workflow,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { AGENT_STRUCTURES } from "../agent-structures/index.js";
 import { buildAgentArtifacts } from "../lib/generator.js";
 import { FRAMEWORKS, PATTERNS, SOURCE_REGISTRY } from "../lib/patterns.js";
 
 function clone(value) {
+  if (value === undefined) return undefined;
   return JSON.parse(JSON.stringify(value));
 }
 
 function createSpec(pattern) {
+  const source = pattern.spec ?? pattern;
   return {
-    projectName: pattern.name,
-    description: pattern.description,
-    patternId: pattern.id,
-    runtime: pattern.defaultRuntime,
-    framework: pattern.recommendedFrameworks[0],
-    modelProvider: pattern.defaultProvider,
-    sandbox: "workspace-write",
-    autonomy: pattern.autonomy,
-    nodes: clone(pattern.nodes),
-    edges: clone(pattern.edges),
-    inputs: clone(pattern.inputs),
-    outputs: clone(pattern.outputs),
-    tools: clone(pattern.tools),
-    memory: clone(pattern.memory),
-    permissions: clone(pattern.permissions),
-    evals: clone(pattern.evals),
-    sources: clone(pattern.sources),
+    projectName: source.projectName ?? source.name,
+    description: source.description,
+    patternId: source.patternId ?? source.id,
+    structureId: source.structureId,
+    runtime: source.runtime ?? source.defaultRuntime,
+    framework: source.framework ?? source.recommendedFrameworks?.[0],
+    modelProvider: source.modelProvider ?? source.defaultProvider,
+    sandbox: source.sandbox ?? "workspace-write",
+    autonomy: source.autonomy,
+    nodes: clone(source.nodes),
+    edges: clone(source.edges),
+    inputs: clone(source.inputs),
+    outputs: clone(source.outputs),
+    tools: clone(source.tools),
+    memory: clone(source.memory),
+    permissions: clone(source.permissions),
+    evals: clone(source.evals),
+    learning: clone(source.learning),
+    sources: clone(source.sources),
   };
 }
 
@@ -80,6 +85,19 @@ function PatternButton({ pattern, active, onClick }) {
       </span>
       <span>{pattern.short}</span>
       <small>{pattern.type} · {pattern.nodeCount} nodes</small>
+    </button>
+  );
+}
+
+function StructureButton({ structure, active, onClick }) {
+  return (
+    <button className={`pattern-button ${active ? "is-active" : ""}`} onClick={onClick}>
+      <span className="pattern-head">
+        <Sparkles size={16} />
+        <strong>{structure.label}</strong>
+      </span>
+      <span>{structure.short}</span>
+      <small>{structure.category} · {structure.spec.nodes.length} nodes</small>
     </button>
   );
 }
@@ -257,6 +275,20 @@ export default function Home() {
           </div>
 
           <div className="quiet-group">
+            <p className="group-label">Agent structures</p>
+            <div className="pattern-list">
+              {AGENT_STRUCTURES.map((structure) => (
+                <StructureButton
+                  key={structure.id}
+                  structure={structure}
+                  active={structure.id === spec.structureId}
+                  onClick={() => replaceSpecFromPattern(structure)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="quiet-group">
             <p className="group-label">Framework fit</p>
             <select value={spec.framework} onChange={(event) => updateSpec({ framework: event.target.value })}>
               {FRAMEWORKS.map((item) => (
@@ -272,6 +304,7 @@ export default function Home() {
             <p className="group-label">Runtime</p>
             <select value={spec.runtime} onChange={(event) => updateSpec({ runtime: event.target.value })}>
               <option value="local-nextjs">Local Next.js builder</option>
+              <option value="local-sandbox">Local sandbox agent</option>
               <option value="local-python">Local Python runtime</option>
               <option value="hosted-api">Hosted API service</option>
               <option value="hybrid">Hybrid local + cloud</option>
@@ -439,6 +472,7 @@ export default function Home() {
             <span><Braces size={15} /> {artifacts.files.length} files</span>
             <span><Shield size={15} /> {spec.sandbox}</span>
             <span><ListChecks size={15} /> {spec.evals.length} evals</span>
+            {spec.learning ? <span><Sparkles size={15} /> {spec.learning.domain}</span> : null}
           </div>
 
           {buildState.status === "built" ? (

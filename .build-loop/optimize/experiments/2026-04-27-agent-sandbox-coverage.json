@@ -1,0 +1,15 @@
+{
+  "target": "agent-sandbox-coverage",
+  "scope": "agent-structures/**/*.js,sandbox/**/*.js,scripts/**/*.mjs,tests/**/*.mjs,lib/**/*.js,app/page.js,README.md,docs/*.md",
+  "metric_cmd": "npm run sandbox:score",
+  "guard_cmd": "npm test",
+  "budget": 10,
+  "direction": "higher",
+  "baseline_commit": "cc208d5",
+  "baseline_value": 133.0,
+  "best_value": 252.0,
+  "prompt_version": "v1",
+  "started_at": "2026-04-27T09:16:45.943559+00:00Z",
+  "iterations_kept": 10,
+  "iterations_total": 10
+}

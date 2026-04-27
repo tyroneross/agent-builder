@@ -1,0 +1,12 @@
+iteration	commit	metric	delta	status	description	hypothesis
+0	cc208d5	133.0000	0.0	baseline	initial state	baseline before domain-learning optimization
+1	cc208d5	138.0000	+5.0000	keep	Add Chief of Staff ambiguous ownership regression scenario	A fourth operations scenario improves domain-learning coverage for owner ambiguity and overloaded decision paths.
+2	cc208d5	143.0000	+5.0000	keep	Add PowerPoint investor demo regression scenario	Presentation agents should learn from persuasion-oriented demo decks, not only board/training decks.
+3	cc208d5	148.0000	+5.0000	keep	Add Writing critique-rewrite regression scenario	A rewrite scenario improves the writing agent's ability to learn from weak source material, not only draft from clean briefs.
+4	cc208d5	153.0000	+5.0000	keep	Add App Builder config-editor regression scenario	A schema editing scenario improves app-building lessons around validation, preview, and save gates.
+5	cc208d5	158.0000	+5.0000	keep	Add Research non-US labs regression scenario	A regional landscape scenario improves research-agent coverage for non-US labs and startup tracking.
+6	cc208d5	163.0000	+5.0000	keep	Add Code Review dependency-drift regression scenario	A dependency drift scenario helps the review agent learn API/version risk patterns beyond local code diffs.
+7	cc208d5	168.0000	+5.0000	keep	Add Data Analysis anomaly-check regression scenario	An anomaly scenario improves data-agent learning for outlier handling and follow-up caveats.
+8	cc208d5	196.0000	+28.0000	keep	Score scenario acceptance criteria	Explicit acceptance criteria make scenario artifacts easier to evaluate and improve across repeated runs.
+9	cc208d5	224.0000	+28.0000	keep	Score permission invariants in every scenario artifact	Permission invariants make sandbox safety measurable across all domain-learning runs.
+10	cc208d5	252.0000	+28.0000	keep	Use DOE to select reflection prompts as a default artifact factor	A 2^3 DOE should show whether acceptance criteria, permission invariants, and reflection prompts independently improve agent-learning artifacts.

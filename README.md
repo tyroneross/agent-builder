@@ -36,6 +36,30 @@ The build route writes local artifacts under `generated/agents/<slug>/`:
 
 The build route is intentionally local-first and constrained: it does not accept arbitrary output paths, and generated artifacts are ignored by git.
 
+Agent structure scan:
+
+```bash
+npm run agent:scan
+npm run agent:scan -- --run --llm=fixture
+npm run agent:scan -- --run --llm=ollama --model=tinyllama:latest
+npm run agent:doe
+```
+
+The scan can run from the terminal or through the UI's **Agent structures** section. Current structures include Chief of Staff, PowerPoint Deck Builder, Writing, App Builder, Research Brief, Code Review, and Data Analysis agents. The terminal scan reports graph shape, tool/eval counts, research-alignment checks, and optional sandbox e2e results.
+
+Each structure now includes an eval-gated domain-learning layer:
+
+- `memory/domain-playbook.md` for accepted, rollback-aware lessons.
+- `memory/learning-ledger.json` for scenario results, candidate lessons, and accepted lessons.
+- `evals/regression-scenarios.json` for lesson regression checks.
+- Four mock scenarios per agent for sandbox testing across normal, edge, and domain-specific cases.
+
+The DOE runner (`npm run agent:doe`) runs a `2^3` full factorial test over artifact factors: acceptance criteria, permission invariants, and reflection prompts. The default generated artifacts keep all three because that setting produced the best sandbox score while preserving the test guard.
+
+Sandbox runs default to `/tmp` to avoid macOS app-sandbox permission drift under `/var/folders`. Override with `AGENT_BUILDER_TMPDIR=/path/to/tmp` when needed.
+
+See `docs/agent-optimization-report.md` for the optimization log, DOE findings, and test outputs.
+
 **Two bodies of knowledge, one skill:**
 
 - **Methodology** — *how to decide*. Principles, shapes, tools, state, context, extensibility, UX, design playbook, evaluation playbook, output patterns, and cross-client portability notes. 11 topic files.
