@@ -114,11 +114,11 @@ This writes actual `.pptx`, `.docx`, `.xlsx`, `.csv`, `.pdf`, `.html`, `.json`, 
 - **Methodology** — *how to decide*. Principles, shapes, tools, state, context, extensibility, UX, design playbook, evaluation playbook, output patterns, and cross-client portability notes. 11 topic files.
 - **Catalog** — *what exists*. Architecture taxonomy (Type I–V), six-component harness model, 7 framework deep dives (LangGraph / CrewAI / Pydantic AI / smolagents / DSPy / AutoGen / Bedrock), memory substrate inventory, 14 production lab patterns (Anthropic, OpenAI, Perplexity, Manus, Google, Devin, Cursor, Windsurf, and more), and dedicated guidance for agents built on local/open-source models (Ollama, llama.cpp, vLLM, Llama, Qwen, DeepSeek, Mistral). 6 catalog files.
 
-Plus output templates, two fully worked examples, and host-specific variants (Anthropic, Codex) with their own auto-activation metadata.
+Plus output templates and two fully worked examples. The single `plugin/SKILL.md` is cross-LLM — natural-language description triggers in Claude Code and other hosts; the `metadata` frontmatter block (priority, pathPatterns, importPatterns, bashPatterns, promptSignals) auto-activates on Codex.
 
 ## When it activates
 
-Automatic triggers include requests to design or rebuild an agent/assistant/copilot, evaluate an existing harness, compare frameworks, pick a memory substrate, or diagnose symptoms like stale context, surprising tool calls, brittle sessions, missing approval controls, or costs drifting out of control. See the `description` field in `SKILL.md` for the full trigger list.
+Automatic triggers include requests to design or rebuild an agent/assistant/copilot, evaluate an existing harness, compare frameworks, pick a memory substrate, or diagnose symptoms like stale context, surprising tool calls, brittle sessions, missing approval controls, or costs drifting out of control. See the `description` field in `plugin/SKILL.md` for the full trigger list.
 
 ## Modes
 
@@ -129,57 +129,45 @@ Automatic triggers include requests to design or rebuild an agent/assistant/copi
 
 ## Structure
 
+The repo holds two distinct products in one tree:
+
+- **`plugin/`** — the slim cross-LLM skill. This is what ships via the RossLabs AI Toolkit marketplace. Stays small.
+- Everything else at the repo root — the Next.js workbench app, generators, scripts, sandbox, generated artifacts. Cloned via `git clone`.
+
 ```
 agent-builder/
-├── SKILL.md                            # entry, trigger, router (host-agnostic default)
+├── plugin/                             # slim skill — marketplace package
+│   ├── SKILL.md                        # entry, trigger, router (cross-LLM)
+│   ├── .claude-plugin/plugin.json      # Claude Code manifest
+│   ├── .codex-plugin/plugin.json       # Codex manifest
+│   ├── examples/                       # 2 worked deliverables
+│   └── references/
+│       ├── methodology/                # 11 files — how to decide
+│       ├── catalog/                    # 6 files — what exists
+│       └── templates/                  # output shapes + nightly DOE contract
 ├── README.md                           # this file
 ├── LICENSE
-├── metadata.json                       # skill catalog metadata (tags, difficulty, attribution)
-├── .claude-plugin/
-│   └── plugin.json                     # Claude Code marketplace manifest
-├── agents/
-│   └── openai.yaml                     # OpenAI-host UX + variant routing
-├── variants/
-│   ├── anthropic/
-│   │   └── SKILL.md                    # Anthropic-optimized router (natural-language description)
-│   └── codex/
-│       └── SKILL.md                    # Codex-optimized router (pathPatterns, importPatterns, promptSignals)
-├── examples/
-│   ├── design-solo-pr-review-agent.md  # worked design deliverable
-│   └── evaluation-research-orchestrator.md  # worked evaluation deliverable
-└── references/
-    ├── methodology/                    # 11 files — how to decide
-    │   ├── 01-principles-and-solo-dev-defaults.md
-    │   ├── 02-harness-shapes-and-architecture.md
-    │   ├── 03-tools-execution-and-permissions.md
-    │   ├── 04-state-sessions-and-durability.md
-    │   ├── 05-context-memory-and-evaluation.md
-    │   ├── 06-agents-and-extensibility.md
-    │   ├── 07-ux-observability-and-operations.md
-    │   ├── 08-design-and-build-playbook.md
-    │   ├── 09-evaluation-and-improvement-playbook.md
-    │   ├── 10-example-requests-and-output-patterns.md
-    │   └── 11-codex-translation-notes.md
-    ├── catalog/                        # 6 files — what exists
-    │   ├── 01-architecture-taxonomy.md
-    │   ├── 02-harness-components.md
-    │   ├── 03-frameworks.md
-    │   ├── 04-memory-substrates.md
-    │   ├── 05-lab-patterns.md
-    │   └── 06-local-and-open-source-models.md   # local/OSS model guidance
-    └── templates/                      # 2 files — output shapes
-        ├── design-deliverable.md
-        └── evaluation-deliverable.md
+├── metadata.json                       # skill catalog metadata
+├── agents/openai.yaml                  # OpenAI-host UX wiring
+│
+├── app/                                # Next.js 16 visual builder (workbench)
+├── lib/                                # generator, patterns, sources
+├── agent-structures/                   # workbench: pattern definitions
+├── agent-skills/                       # workbench: example generated skills
+├── agent-outputs/                      # workbench: generated artifacts
+├── sandbox/                            # workbench: sandbox harness
+├── scripts/                            # workbench: scan, DOE, artifact runs
+└── tests/                              # workbench: node test suite
 ```
 
-### Host variants
+### Cross-LLM activation
 
-The root `SKILL.md` is host-agnostic and works on any Claude Code skill host. Two optimized variants are available:
+`plugin/SKILL.md` is a single file that triggers in any host:
 
-- **`variants/anthropic/SKILL.md`** — uses the natural-language description format Anthropic hosts prefer for auto-activation. Use this if you're deploying on Claude Code, Claude Desktop, or the Claude API.
-- **`variants/codex/SKILL.md`** — includes the `metadata:` frontmatter block with `pathPatterns`, `importPatterns`, `bashPatterns`, and `promptSignals` (scoring system with `minScore: 6`) that Codex-style hosts use to decide when to auto-activate a skill. Use this if you're deploying on Codex or any host that honors the same metadata schema.
+- **Claude Code, Claude Desktop, Claude API** — match against the natural-language `description` field
+- **Codex and compatible hosts** — match against the `metadata` frontmatter block (`pathPatterns`, `importPatterns`, `bashPatterns`, and `promptSignals` with `minScore: 6`). Hosts that don't read that block ignore it without harm.
 
-To activate a variant as the default, replace the root `SKILL.md` with the variant file. All reference paths in the variants assume they're copied to the skill root.
+No variant files; one canonical SKILL.md serves every host.
 
 ## Install
 
@@ -203,11 +191,11 @@ npm run serve
 **As a standalone user skill** (any plugin host or bare Claude Code):
 ```bash
 mkdir -p ~/.claude/skills/agent-builder
-rsync -a SKILL.md README.md LICENSE metadata.json references examples variants agents \
+rsync -a plugin/SKILL.md plugin/references plugin/examples \
   ~/.claude/skills/agent-builder/
 ```
 
-**Inside another plugin:** drop `agent-builder/` into that plugin's `skills/` directory and it becomes available wherever the host plugin is installed.
+**Inside another plugin:** drop the contents of `plugin/` into that plugin's `skills/agent-builder/` directory.
 
 ## Design posture
 
@@ -215,9 +203,9 @@ The skill defaults to lean, solo-maintainable, single-agent architecture and req
 
 ## Attribution
 
-- **Methodology** (`references/methodology/`) — the 11 topic files in this directory are copied from the [**`n-agentic-harnesses`**](https://github.com/NateBJones-Projects/OB1/tree/main/skills/n-agentic-harnesses) agent harness design skill authored by **Jonathan Edwards** (GitHub: [jonathanedwards](https://github.com/jonathanedwards)), published in the OB1 repository owned by **Nate B Jones** ([NateBJones-Projects](https://github.com/NateBJones-Projects)). Nothing else from OB1 was used.
-- **Catalog** (`references/catalog/`) — original research from the **RossLabs.ai agentic AI architectures corpus** (April 2026, 368 sources) authored by Tyrone Ross.
-- **SKILL.md, templates, examples, variants, and README** — new compositions by Tyrone Ross bridging the two lineages.
+- **Methodology** (`plugin/references/methodology/`) — the 11 topic files in this directory are copied from the [**`n-agentic-harnesses`**](https://github.com/NateBJones-Projects/OB1/tree/main/skills/n-agentic-harnesses) agent harness design skill authored by **Jonathan Edwards** (GitHub: [jonathanedwards](https://github.com/jonathanedwards)), published in the OB1 repository owned by **Nate B Jones** ([NateBJones-Projects](https://github.com/NateBJones-Projects)). Nothing else from OB1 was used.
+- **Catalog** (`plugin/references/catalog/`) — original research from the **RossLabs.ai agentic AI architectures corpus** (April 2026, 368 sources) authored by Tyrone Ross.
+- **SKILL.md, templates, examples, and README** — new compositions by Tyrone Ross bridging the two lineages.
 
 ## Sources used for the catalog
 
@@ -229,13 +217,9 @@ MIT. Methodology files retain their original authorship attribution in frontmatt
 
 ## Codex
 
-This package now ships an additive Codex plugin surface alongside the existing Claude Code package. The Claude package remains authoritative for Claude behavior; the Codex package adds a parallel `.codex-plugin/plugin.json` install surface without changing the Claude runtime.
+The slim plugin ships parallel install surfaces for Claude Code and Codex from the same `plugin/SKILL.md`:
 
-Package root for Codex installs:
-- the repository root (`.`)
+- `plugin/.claude-plugin/plugin.json` — Claude Code marketplace manifest
+- `plugin/.codex-plugin/plugin.json` — Codex manifest
 
-Primary Codex surface:
-- skills from `./SKILL.md` when present
-- MCP config from `(none)` when present
-
-Install the package from this package root using your current Codex plugin install flow. The Codex package is additive only: Claude-specific hooks, slash commands, and agent wiring remain unchanged for Claude Code.
+Package root for Codex installs: `plugin/` (point your Codex plugin install flow at this subdirectory). Both manifests reference the same `SKILL.md`, so Claude and Codex share a single skill definition with no drift.

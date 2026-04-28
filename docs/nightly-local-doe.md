@@ -11,7 +11,7 @@ local model where possible.
 
 Source contract:
 
-`references/templates/nightly-doe-contract.json`
+`plugin/references/templates/nightly-doe-contract.json`
 
 ## Current Status
 

@@ -7,7 +7,7 @@
     "github": "tyroneross",
     "email": "tyrone@rosslabs.ai"
   },
-  "version": "0.1.0",
+  "version": "0.3.0",
   "requires": {
     "services": [],
     "tools": ["AI client with reusable skills/prompts", "Ability to install the bundled references directory"]
@@ -37,14 +37,14 @@
       "author_github": "jonathanedwards",
       "repo_owner": "Nate B Jones",
       "repo": "https://github.com/NateBJones-Projects/OB1/tree/main/skills/n-agentic-harnesses",
-      "scope": "methodology reference files in references/methodology/ are copied from this skill"
+      "scope": "methodology reference files in plugin/references/methodology/ are copied from this skill"
     },
     "catalog_source": {
       "name": "RossLabs.ai agentic AI architectures research corpus",
       "author": "Tyrone Ross",
       "date": "April 2026",
       "source_count": 368,
-      "scope": "references/catalog/ 1-6 are derived from this corpus"
+      "scope": "plugin/references/catalog/ 1-6 are derived from this corpus"
     }
   }
 }

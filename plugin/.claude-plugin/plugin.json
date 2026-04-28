@@ -1,7 +1,7 @@
 {
   "name": "agent-builder",
-  "version": "0.1.0",
-  "description": "Design, evaluate, and improve agentic harnesses — methodology playbooks plus an empirical catalog of architectures, frameworks, memory substrates, and production lab patterns.",
+  "version": "0.3.0",
+  "description": "Design and evaluate agentic harnesses with playbooks and an architecture catalog",
   "author": { "name": "Tyrone Ross" },
   "homepage": "https://github.com/tyroneross/RossLabs-AI-Toolkit/tree/main/skills/agent-builder",
   "repository": "https://github.com/tyroneross/RossLabs-AI-Toolkit",

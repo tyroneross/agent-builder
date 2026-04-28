@@ -1,0 +1,303 @@
+---
+name: agent-builder
+description: Design, evaluate, or rebuild agentic harnesses — tool use, permissions, workflow state, memory, evals, observability, multi-agent, framework selection. Activates on harness-gap symptoms too.
+author: Tyrone Ross
+version: 0.3.0
+tags: [agentic-harness, agents, architecture, evaluation, memory, observability, frameworks, multi-agent, local-models, open-source, workflow, permissions]
+category: developer-tools
+difficulty: advanced
+metadata:
+  priority: 6
+  pathPatterns:
+    - '**/*harness*'
+    - '**/*agent-runtime*'
+    - '**/*agent_runtime*'
+    - '**/*orchestrat*'
+    - '**/*workflow*'
+    - '**/*tool-registry*'
+    - '**/*tool_registry*'
+    - '**/*permission*'
+    - '**/*approval*'
+    - '**/*state-machine*'
+    - '**/*state_machine*'
+    - '**/*session*'
+    - '**/*memory*'
+    - '**/*eval*'
+    - '**/*retry*'
+    - '**/*ollama*'
+    - '**/*llama-cpp*'
+    - '**/*vllm*'
+  importPatterns:
+    - '@modelcontextprotocol/*'
+    - 'langgraph'
+    - '@langchain/*'
+    - 'langchain'
+    - '@vercel/workflow'
+    - 'langchain_ollama'
+    - 'langchain-ollama'
+    - 'deepagents'
+    - 'ollama'
+    - 'llama-cpp-python'
+    - 'vllm'
+    - 'outlines'
+    - 'instructor'
+    - 'pydantic_ai'
+    - 'pydantic-ai'
+    - 'smolagents'
+    - 'dspy'
+    - 'crewai'
+    - 'autogen'
+    - 'claude_agent_sdk'
+    - 'claude-agent-sdk'
+  bashPatterns:
+    - '\bnpm\s+(install|i|add)\s+[^\n]*(langgraph|langchain|@vercel/workflow|@modelcontextprotocol)\b'
+    - '\bpnpm\s+(install|i|add)\s+[^\n]*(langgraph|langchain|@vercel/workflow|@modelcontextprotocol)\b'
+    - '\bbun\s+(install|i|add)\s+[^\n]*(langgraph|langchain|@vercel/workflow|@modelcontextprotocol)\b'
+    - '\byarn\s+add\s+[^\n]*(langgraph|langchain|@vercel/workflow|@modelcontextprotocol)\b'
+    - '\b(pip|uv|uvx)\s+(install|add)\s+[^\n]*(langchain|langgraph|deepagents|ollama|llama-cpp-python|vllm|outlines|instructor|pydantic-ai|smolagents|dspy|crewai|autogen|claude-agent-sdk)\b'
+  promptSignals:
+    phrases:
+      - "agentic harness"
+      - "agent harness"
+      - "ai harness"
+      - "harness architecture"
+      - "agent architecture"
+      - "agent runtime"
+      - "agent workflow runtime"
+      - "tool-use architecture"
+      - "tool use architecture"
+      - "tool calling system"
+      - "tool registry"
+      - "capability registry"
+      - "permission layer"
+      - "approval gate"
+      - "human-in-the-loop"
+      - "workflow state"
+      - "session persistence"
+      - "durable agent"
+      - "durable workflow"
+      - "resume after crash"
+      - "crash-safe agent"
+      - "retry and idempotency"
+      - "context assembly"
+      - "memory system"
+      - "evaluation harness"
+      - "replay evals"
+      - "agent observability"
+      - "operator visibility"
+      - "multi-agent architecture"
+      - "single agent vs multi-agent"
+      - "stop reasons"
+      - "local model agent"
+      - "open source agent"
+      - "ollama agent"
+      - "self-hosted agent"
+      - "on-device agent"
+      - "offline-first agent"
+      - "local llm tool calling"
+      - "framework selection"
+      - "memory substrate"
+    allOf:
+      - [agent, harness]
+      - [tool, registry]
+      - [permission, approval]
+      - [workflow, state]
+      - [resume, retry]
+      - [context, memory]
+      - [evaluation, harness]
+      - [multi-agent, architecture]
+      - [durable, agent]
+      - [operator, visibility]
+      - [local, agent]
+      - [open-source, model]
+      - [ollama, agent]
+    anyOf:
+      - "agent orchestration"
+      - "approval workflow"
+      - "tool-calling runtime"
+      - "tool calling runtime"
+      - "state machine"
+      - "retry policy"
+      - "framework for agents"
+      - "which framework"
+      - "which memory store"
+    noneOf: []
+    minScore: 6
+---
+
+# Agent Builder
+
+Cross-LLM skill (Claude Code, Codex, others). Frontmatter `metadata` block above is consumed by Codex for auto-triggering on file paths, imports, shell commands, and prompt signals; runtimes that don't read it ignore it without harm.
+
+## Problem
+
+Most AI products do not break because the model is too weak. They break at the **harness layer**: unclear tool boundaries, missing approval policy, brittle state, sloppy context assembly, no evaluation loop, weak operator visibility. This skill turns those vague issues into concrete primitives, boundaries, phases, and checks — grounded in empirical evidence from production systems.
+
+Two complementary bodies of knowledge ship with this skill:
+
+- **`references/methodology/`** — *how to decide*. Prescriptive design and evaluation playbooks: principles, shapes, tools, state, context, extensibility, UX, output patterns.
+- **`references/catalog/`** — *what exists to choose from*. Empirical inventory: architecture types I–V, six-component harness model, frameworks (LangGraph, CrewAI, Pydantic AI, smolagents, DSPy, AutoGen, Bedrock), memory substrates, lab patterns (Anthropic, OpenAI, Perplexity, Manus, Google, Devin, Cursor).
+
+## Trigger Conditions
+
+Activate when any of the following hold:
+
+- The user is designing or rebuilding an agent, assistant, copilot, or AI workflow
+- The request mentions harness architecture, tool-use architecture, tool registries, permission layers, approval gates, workflow state, session persistence, retries, resumability, memory, evals, observability, or multi-agent design
+- The user wants to evaluate an existing harness for risks, missing primitives, UX gaps, or operational weakness
+- The user is choosing between frameworks (LangGraph vs CrewAI vs Pydantic AI vs smolagents vs DSPy vs AutoGen vs Bedrock), memory substrates, or coordination patterns
+- The symptoms point to harness problems even if the word "harness" never appears:
+  - tools fire without clear permission
+  - sessions fail on crash or long waits
+  - context gets stale or bloated (routinely hitting 92%+ capacity)
+  - tool count climbs past ~50 and quality drops
+  - operators cannot see what happened or why
+  - costs, retries, or handoffs are drifting out of control
+  - multi-agent setup is producing loops or systemic failures
+
+## Default Posture
+
+1. Bias toward lean, solo-maintainable architecture.
+2. Start with a single-agent design unless clear constraints justify more.
+3. Require an evaluation plan even for greenfield builds.
+4. Prefer explicit system boundaries, permission policy, and workflow state over prompt cleverness.
+5. Translate ideas into implementation phases, success criteria, and failure tests.
+6. **When justifying multi-agent, cite empirical cost**: single agent ≈ 4× chat tokens, multi-agent ≈ 15× chat tokens, 70%+ of multi-agent failures are systemic (MAST), only 11% of orgs run production agentic systems (Deloitte 2025). See `references/catalog/01-architecture-taxonomy.md` for sources.
+7. **When the target is a local or open-source model**, apply the stricter local-model posture: start single-agent *always*, cull tools aggressively (Vercel 80% reduction pattern), compaction is non-negotiable (4K–32K context windows), evals are load-bearing not optional. See `references/catalog/06-local-and-open-source-models.md`.
+
+## Step 0 — Gather Context
+
+Before routing, make sure you have enough to work with.
+
+For **design** work, confirm:
+- what product or system the harness serves
+- what actions the agent will take
+- who the users are
+- any known constraints (solo maintenance, existing stack, timeline, local/on-device, hardware limits)
+
+For **evaluation** work, inspect the harness itself:
+- read the codebase, agent config, skills, hooks, architecture docs
+- if evidence is missing, ask for the narrowest missing input and keep moving
+- do not evaluate from vibes alone
+
+If the request is vague ("help me build an agent" or "is my harness any good"), ask one or two clarifying questions. Do not stall the conversation with an interview — get enough to pick a mode and start.
+
+## Step 1 — Classify The Request
+
+Choose one mode before reading reference files.
+
+### `design`
+User is creating a new harness, planning a major rebuild, or asking for architecture, MVP shape, or implementation sequencing.
+
+Default reads: `references/methodology/01-principles-and-solo-dev-defaults.md`, `references/methodology/02-harness-shapes-and-architecture.md`, `references/methodology/08-design-and-build-playbook.md`, `references/catalog/01-architecture-taxonomy.md`, `references/templates/design-deliverable.md`. Add `references/catalog/06-local-and-open-source-models.md` when the target is a local/OSS model.
+
+### `evaluation`
+User has a harness and wants gaps, risks, missing primitives, UX upgrades, or architectural cleanup.
+
+Default reads: `references/methodology/01-principles-and-solo-dev-defaults.md`, `references/methodology/09-evaluation-and-improvement-playbook.md`, `references/catalog/02-harness-components.md`, `references/templates/evaluation-deliverable.md`.
+
+### `design + evaluation`
+User wants a target architecture and a way to verify it, compare it with an existing system, or define acceptance criteria before building.
+
+Default reads: union of the two above.
+
+### `catalog-lookup`
+User is asking a factual question about what exists — "which framework", "how does Anthropic's orchestrator work", "what memory substrate", "what's the adoption rate of Type III", "best local model tool-calling stack". Route straight to the catalog. Do **not** dump methodology files for this mode.
+
+Default reads: only the catalog file(s) relevant to the question. Cite the exact file and section. Surface trade-offs.
+
+## Step 2 — Classify The Product Shape
+
+Pick the closest shape and state the assumption if ambiguous:
+
+| Shape (methodology) | Maps to Catalog Type |
+|---|---|
+| chat assistant | Type I (Augmented Assistant) |
+| workflow orchestrator | Type II (Workflow Automaton) or Type III (Orchestrated Team) |
+| code agent | Type III (Claude Code / Devin / Cursor patterns) |
+| internal copilot | Type I or Type II |
+| embedded AI product feature | Type I or Type II |
+| hybrid system | Type III+ |
+
+If the target runs on a local/open-source model regardless of shape, also read `references/catalog/06-local-and-open-source-models.md`.
+
+## Step 3 — Read The Smallest Useful Reference Set
+
+Read only the files the request actually needs. This file is the index — do not rely on reference-to-reference chains.
+
+### Methodology (how to decide)
+- `references/methodology/01-principles-and-solo-dev-defaults.md` — almost every request. Defines default decision posture.
+- `references/methodology/02-harness-shapes-and-architecture.md` — choosing system shape, boundaries, lifecycle, transports, deployment.
+- `references/methodology/03-tools-execution-and-permissions.md` — tool registries, tool calling, approval gates, sandboxes, trust tiers.
+- `references/methodology/04-state-sessions-and-durability.md` — sessions, resumability, retries, idempotency, approval waits, long-running work.
+- `references/methodology/05-context-memory-and-evaluation.md` — context windows, retrieval, memory, provenance, evals, replay tests, regression detection.
+- `references/methodology/06-agents-and-extensibility.md` — multi-agent design, plugins, hooks, skills, extension surfaces.
+- `references/methodology/07-ux-observability-and-operations.md` — streaming UX, health checks, logs, analytics, budgets, supportability.
+- `references/methodology/08-design-and-build-playbook.md` — build-ready plan from idea to implementation.
+- `references/methodology/09-evaluation-and-improvement-playbook.md` — findings, missing primitives, upgrade priorities, acceptance tests.
+- `references/methodology/10-example-requests-and-output-patterns.md` — prompt examples, response structure examples.
+- `references/methodology/11-codex-translation-notes.md` — adapting this skill for Codex or other LLM clients; cross-client portability notes.
+
+### Catalog (what exists)
+- `references/catalog/01-architecture-taxonomy.md` — Type I–V classification, adoption rates, 4 debates (single-vs-multi, frameworks-vs-raw, scaffolding-vs-minimal, augment-vs-automate), 10 verified stats, coordination patterns, architecture timeline.
+- `references/catalog/02-harness-components.md` — six-component harness model (prompt / tools / memory / context / error / observability) and its mapping to the methodology topic files.
+- `references/catalog/03-frameworks.md` — LangGraph, CrewAI, Pydantic AI, smolagents, DSPy, AutoGen, Bedrock AgentCore. Decision tree for framework selection.
+- `references/catalog/04-memory-substrates.md` — filesystem-as-memory, vector DB, in-context, COALA framework, Claude Code memory tiers, Voyager skill library, DSPy optimization formats, self-improvement patterns (MCTS, OPRO, PromptBreeder, Gödel Agent).
+- `references/catalog/05-lab-patterns.md` — production architecture patterns from Anthropic, OpenAI, Perplexity, LangChain DeepAgents, Manus, Google ADK, Microsoft AutoGen/Copilot, Meta Llama Stack, DeepSeek, Cohere, Devin, xAI Grok, Cursor, Windsurf.
+- `references/catalog/06-local-and-open-source-models.md` — constraints and patterns for agents on local/open-source models (Ollama, llama.cpp, vLLM, Llama, Qwen, DeepSeek, Mistral, Phi, Gemma). Tool-call reliability tiers, framework fit for local deployment, failure modes, decision tree by hardware, three non-obvious insights for local agents.
+
+### Templates (output shapes)
+- `references/templates/design-deliverable.md` — use when producing a design output.
+- `references/templates/evaluation-deliverable.md` — use when producing an evaluation output.
+
+### Examples (calibration)
+- `examples/design-solo-pr-review-agent.md` — worked design deliverable for a solo-maintainer PR review agent.
+- `examples/evaluation-research-orchestrator.md` — worked evaluation deliverable for a Type III research orchestrator with 9 specialists.
+
+## Operating Rules
+
+- Convert vague ambitions into concrete harness primitives.
+- Push back on unnecessary complexity.
+- Treat workflow state, permissions, context assembly, and evaluation as first-class architecture, not cleanup tasks.
+- Separate universal harness primitives from product-specific manifestation.
+- For evaluation requests, present findings first and improvement sequence second.
+- For design requests, include how the design will be tested before calling it done.
+- When recommending a framework, memory substrate, or multi-agent pattern, **cite the catalog file** you pulled it from.
+
+## Output Contract
+
+### For `design`
+- recommended harness shape
+- core primitives and subsystem boundaries
+- MVP boundary
+- phased implementation plan
+- verification and acceptance criteria
+
+### For `evaluation`
+- findings ordered by severity or leverage
+- missing or weak primitives
+- user experience and operational gaps
+- prioritized upgrade path
+- tests or checks that confirm the fixes
+
+### For `design + evaluation`
+- target architecture
+- comparison against current or likely failure modes
+- implementation phases
+- acceptance criteria
+- evaluation plan covering regressions, safety, and UX
+
+### For `catalog-lookup`
+- direct answer to the factual question
+- trade-offs relative to alternatives in the same catalog file
+- source citation (`catalog/NN-filename.md § Section`)
+- one-line pointer to the methodology file that operationalizes the choice, if applicable
+
+## Final Check Before Responding
+
+- Did you keep the design lean enough for a solo developer unless the request clearly demanded more?
+- Did you avoid recommending multi-agent coordination by default?
+- Did you include evaluation, not just construction?
+- Did you give the user an operational path forward instead of abstract theory?
+- If you recommended multi-agent, a framework, or a memory substrate, did you cite the catalog file you pulled it from?
+- If the target is a local/open-source model, did you apply the stricter posture from `catalog/06-local-and-open-source-models.md` (single-agent always, cull tools, compaction mandatory, evals non-optional)?

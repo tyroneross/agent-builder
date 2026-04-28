@@ -5,7 +5,4 @@ interface:
 policy:
   allow_implicit_invocation: true
 routing:
-  variants:
-    anthropic: variants/anthropic/SKILL.md
-    codex: variants/codex/SKILL.md
-    default: SKILL.md
+  default: plugin/SKILL.md
