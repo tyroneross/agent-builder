@@ -242,6 +242,10 @@ export default function Home() {
           <h1>Design the harness first. Build the files second.</h1>
         </div>
         <div className="topbar-actions">
+          <a className="ghost-button" href="/cos">
+            <Play size={16} />
+            Run Chief of Staff
+          </a>
           <button className="ghost-button" onClick={() => replaceSpecFromPattern(activePattern)}>
             <RotateCcw size={16} />
             Reset
