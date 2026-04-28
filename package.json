@@ -14,6 +14,8 @@
     "agents:artifacts:doe50": "python3 scripts/run-artifact-agents.py --doe --doe-runs 50 --skip-models",
     "agents:artifacts:score": "python3 scripts/run-artifact-agents.py --doe --skip-models --score",
     "agents:artifacts:score50": "python3 scripts/run-artifact-agents.py --doe --doe-runs 50 --skip-models --score",
+    "cos:gen": "node scripts/generate-chief-of-staff.mjs",
+    "cos:run": "node scripts/run-chief-of-staff.mjs",
     "sandbox:e2e": "node scripts/run-sandbox-e2e.mjs",
     "sandbox:score": "node scripts/run-sandbox-e2e.mjs --score --llm=fixture",
     "start": "next start",
