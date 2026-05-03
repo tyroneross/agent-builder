@@ -237,6 +237,8 @@ Read only the files the request actually needs. This file is the index — do no
 - `references/methodology/09-evaluation-and-improvement-playbook.md` — findings, missing primitives, upgrade priorities, acceptance tests.
 - `references/methodology/10-example-requests-and-output-patterns.md` — prompt examples, response structure examples.
 - `references/methodology/11-codex-translation-notes.md` — adapting this skill for Codex or other LLM clients; cross-client portability notes.
+- `references/methodology/12-agentic-systems-handoff-addendum.md` — Perplexity-derived methodology for agentic-system handoffs: autonomy boundaries, tool permission tiers (T0–T5), orchestration topology, memory taxonomy, the 14-file handoff folder, MCP/A2A guidance, OWASP/NIST safety taxonomy.
+- `references/methodology/13-agentic-product-dev-synthesis.md` — cross-source synthesis (Perplexity v2 + ChatGPT) for **product-development agent systems**: workflow-first principle, triage + specialists + reviewers default architecture, role-card pattern, canonical A0–A4 autonomy ladder (Perplexity v2 + ChatGPT; Perplexity v1's A0–A5 retained as a more granular variant), ask-before policy, confidence scoring, agent-system-specific eval gates (spec lint, traceability, scorecard). Read this when the agent's job is to produce a buildable spec for a downstream coding agent.
 
 ### Catalog (what exists)
 - `references/catalog/01-architecture-taxonomy.md` — Type I–V classification, adoption rates, 4 debates (single-vs-multi, frameworks-vs-raw, scaffolding-vs-minimal, augment-vs-automate), 10 verified stats, coordination patterns, architecture timeline.
@@ -249,6 +251,7 @@ Read only the files the request actually needs. This file is the index — do no
 ### Templates (output shapes)
 - `references/templates/design-deliverable.md` — use when producing a design output.
 - `references/templates/evaluation-deliverable.md` — use when producing an evaluation output.
+- `references/templates/agentic-handoff/` — 13 reusable schemas for product-development agent systems: role cards, handoff envelopes, agent output contracts, artifact versioning, tool contracts (with T0–T5 permission tiers), guardrails, assumption logs, traceability matrix, agent manifest, evaluation scorecard, spec-lint checklist, agent ADRs, human checkpoints. Index at `references/templates/agentic-handoff/README.md`. Use alongside `methodology/13-agentic-product-dev-synthesis.md`.
 
 ### Examples (calibration)
 - `examples/design-solo-pr-review-agent.md` — worked design deliverable for a solo-maintainer PR review agent.
