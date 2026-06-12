@@ -159,6 +159,7 @@ Create a new skill only when the new job has a distinct trigger, distinct output
 
 For an end-to-end agent-system repo, Agent Builder should produce:
 
+- Spec profile (`skill`, `personal`, `team`, or `enterprise`) with rationale
 - Repo layout
 - Agent manifest
 - Role cards
@@ -173,6 +174,12 @@ For an end-to-end agent-system repo, Agent Builder should produce:
 - Operator runbook
 
 If the deliverable omits repo structure or skill structure, the agent system is not build-ready.
+
+Profile-specific packaging notes:
+- `skill` packages can be build-ready with a skill contract, prompt contract, fixtures, and host manifest. Do not require runtime lifecycle files unless a runtime ships.
+- `personal` agents need local boundary, tool, observability, and eval evidence, but can keep owner/IAM/lifecycle sections lightweight.
+- `team` agents need explicit flow topology, guardrails, and human checkpoints because shared state and handoffs create coordination risk.
+- `enterprise` agents need registry, lifecycle, audit, and rollback artifacts before production because ownership and deactivation are part of the runtime contract.
 
 ---
 

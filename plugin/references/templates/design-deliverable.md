@@ -16,6 +16,7 @@ State in one paragraph:
 
 - **Shape:** (chat assistant / workflow orchestrator / code agent / copilot / embedded feature / hybrid)
 - **Catalog type:** (Type I / II / III / IV / V — cite `catalog/01-architecture-taxonomy.md`)
+- **Spec profile:** (`skill` / `personal` / `team` / `enterprise`) with one sentence explaining why this is enough and what signal would promote it
 - **Coordination pattern:** (prompt chain / routing / parallel / orchestrator-workers / evaluator-optimizer / hierarchical / autonomous loop)
 - **Deployment mode:** (API-key runtime / Claude-native / Codex-native / host-agnostic / hybrid — cite `catalog/10-cross-host-deployment.md`)
 - **Rationale:** one paragraph explaining why this shape beats the next-closest alternative
@@ -110,6 +111,7 @@ Only after the core harness is stable and measurable. If Phase 3 involves multi-
 
 ## 11. Evaluation Plan (before calling it done)
 
+- **Profile-scaled validation** — contracts required by the selected profile; do not apply enterprise-only gates to personal agents or standalone skills
 - **Golden tasks** — the 5–20 happy-path cases that must always work
 - **Risky tasks** — inputs that probe known failure modes
 - **Recovery tests** — crash, timeout, approval denial, tool failure

@@ -6,6 +6,7 @@ import { buildAgentArtifacts, slugify } from "../lib/generator.js";
 import { writeAgentArtifacts } from "../lib/build-files.js";
 import { PATTERNS } from "../lib/patterns.js";
 import { findAgentStructure } from "../agent-structures/index.js";
+import { inferSpecProfile, mapToolPermissionTier } from "../lib/spec-profile.js";
 
 async function makeTestRoot(prefix) {
   const base = process.env.AGENT_BUILDER_TMPDIR || join(process.cwd(), ".tmp");
@@ -20,49 +21,132 @@ test("slugify returns a safe stable folder name", () => {
 });
 
 test("all bundled patterns generate the core artifact set", () => {
+  const corePaths = [
+    "INSTALL.md",
+    "README.md",
+    "agent-package.json",
+    "agent.yaml",
+    "context/input-contract.md",
+    "evals/golden-tasks.json",
+    "evals/regression-scenarios.json",
+    "manifest.json",
+    "memory/domain-playbook.md",
+    "memory/learning-ledger.json",
+    "package.json",
+    "prompts/prompt-builder-contract.md",
+    "runtime/README.md",
+    "runtime/adapter-contract.md",
+    "runtime/adapters/claude-subagents.md",
+    "runtime/adapters/custom-loop.md",
+    "runtime/adapters/deepagents.md",
+    "runtime/adapters/langgraph.md",
+    "runtime/adapters/nvidia-nemo-agent-toolkit.md",
+    "runtime/adapters/openai-agents-sdk.md",
+    "runtime/adapters/pydantic-ai.md",
+    "runtime/custom-loop-adapter.mjs",
+    "scripts/setup-check.mjs",
+    "setup/env.example",
+    "setup/host-deployment.md",
+    "setup/install-checklist.md",
+    "setup/local-models.md",
+    "setup/requirements.json",
+    "setup/vector-store.md",
+    "skills/skill-bank.json",
+    "skills/skill-contract.md",
+    "sources.md",
+    "system-prompt.md",
+    "tools.json",
+  ];
+
   for (const pattern of PATTERNS) {
     const result = buildAgentArtifacts({ patternId: pattern.id, projectName: pattern.name }, { createdAt: "test" });
     const paths = result.files.map((file) => file.path).sort();
-    assert.deepEqual(paths, [
-      "INSTALL.md",
-      "README.md",
-      "agent-package.json",
-      "agent.yaml",
-      "context/input-contract.md",
-      "evals/golden-tasks.json",
-      "evals/regression-scenarios.json",
-      "manifest.json",
-      "memory/domain-playbook.md",
-      "memory/learning-ledger.json",
-      "package.json",
-      "prompts/prompt-builder-contract.md",
-      "runtime/README.md",
-      "runtime/adapter-contract.md",
-      "runtime/adapters/claude-subagents.md",
-      "runtime/adapters/custom-loop.md",
-      "runtime/adapters/deepagents.md",
-      "runtime/adapters/langgraph.md",
-      "runtime/adapters/nvidia-nemo-agent-toolkit.md",
-      "runtime/adapters/openai-agents-sdk.md",
-      "runtime/adapters/pydantic-ai.md",
-      "runtime/custom-loop-adapter.mjs",
-      "scripts/setup-check.mjs",
-      "setup/env.example",
-      "setup/host-deployment.md",
-      "setup/install-checklist.md",
-      "setup/local-models.md",
-      "setup/requirements.json",
-      "setup/vector-store.md",
-      "skills/skill-bank.json",
-      "skills/skill-contract.md",
-      "sources.md",
-      "system-prompt.md",
-      "tools.json",
-    ]);
+    const manifest = JSON.parse(result.files.find((file) => file.path === "manifest.json").content);
+    assert.equal(new Set(paths).size, paths.length);
+    for (const path of corePaths) assert.ok(paths.includes(path), `${pattern.id} missing ${path}`);
+    assert.ok(paths.includes("contracts/spec-profile.json"));
+    for (const path of manifest.specProfile.contractFiles) {
+      assert.ok(paths.includes(path), `${pattern.id} missing profile contract ${path}`);
+    }
+    assert.ok(manifest.specProfile.validationFocus.length >= 3);
     assert.match(result.files.find((file) => file.path === "agent.yaml").content, /permissions:/);
     assert.match(result.files.find((file) => file.path === "tools.json").content, /inputSchema/);
     assert.match(result.files.find((file) => file.path === "prompts\/prompt-builder-contract.md").content, /Prompt Builder Invocation/);
   }
+});
+
+test("profile inference does not treat incidental v text as Type V topology", () => {
+  const profile = inferSpecProfile(
+    {
+      projectName: "Review Helper",
+      description: "Local evaluator for review drafts.",
+      runtime: "local-sandbox",
+      nodes: [{ id: "review", kind: "agent" }],
+      tools: [],
+    },
+    { type: "Review evaluator" },
+  );
+  assert.equal(profile.id, "personal");
+
+  const multiAgentProfile = inferSpecProfile(
+    {
+      projectName: "Research Orchestrator",
+      description: "Delegates to workers.",
+      runtime: "local-sandbox",
+      nodes: [{ id: "orchestrator", kind: "orchestrator" }],
+      tools: [],
+    },
+    { type: "Type III" },
+  );
+  assert.equal(multiAgentProfile.id, "team");
+
+  const markVProfile = inferSpecProfile(
+    {
+      projectName: "Mark V Draft Helper",
+      description: "Local draft helper.",
+      runtime: "local-sandbox",
+      nodes: [{ id: "draft", kind: "agent" }],
+      tools: [],
+    },
+    { type: "Mark V helper" },
+  );
+  assert.equal(markVProfile.id, "personal");
+});
+
+test("invalid explicit validation profile is rejected", () => {
+  assert.throws(
+    () => buildAgentArtifacts({ patternId: "solo-tool-agent", projectName: "Bad Profile", validationProfile: "enterprize" }),
+    /Unknown validation profile/,
+  );
+});
+
+test("destructive or unknown side effects do not map to T0", () => {
+  assert.equal(mapToolPermissionTier({ name: "wipe", sideEffect: "destructive", permission: "approval-required" }), "T5");
+  assert.equal(mapToolPermissionTier({ name: "custom", sideEffect: "custom-side-effect", permission: "ask-first" }), "T5");
+  assert.equal(mapToolPermissionTier({ name: "missing", responsibility: "No declared side effect.", permission: "ask-first" }), "T5");
+  assert.equal(mapToolPermissionTier({ name: "deploy-prod", responsibility: "Deploys production credentials.", sideEffect: "read", permission: "ask-first" }), "T5");
+  assert.equal(mapToolPermissionTier({ name: "auto-deploy", responsibility: "Runs deployment.", sideEffect: "read", permission: "ask-first" }), "T5");
+  assert.equal(mapToolPermissionTier({ name: "read", responsibility: "checks permission before fetching", sideEffect: "read", permission: "allow-read" }), "T1");
+});
+
+test("profile inference handles aliases, flags, runtimes, and false-positive production text", () => {
+  const base = {
+    projectName: "Profile Fixture",
+    description: "Local draft helper.",
+    runtime: "local-sandbox",
+    nodes: [{ id: "draft", title: "Draft", kind: "agent" }],
+    tools: [],
+  };
+
+  assert.equal(inferSpecProfile({ ...base, validationProfile: "production" }).id, "enterprise");
+  assert.equal(inferSpecProfile({ ...base, validationProfile: { id: "workflow" } }).id, "team");
+  assert.equal(inferSpecProfile({ ...base, enterprise: true }).id, "enterprise");
+  assert.equal(inferSpecProfile({ ...base, riskTier: "high" }).id, "enterprise");
+  assert.equal(inferSpecProfile({ ...base, runtime: "hosted-worker" }).id, "team");
+  assert.equal(inferSpecProfile({ ...base, description: "Pre-production draft helper." }).id, "personal");
+  assert.equal(inferSpecProfile({ ...base, description: "Local customer database helper." }).id, "personal");
+  assert.equal(inferSpecProfile({ ...base, validationProfile: "" }).id, "personal");
+  assert.equal(inferSpecProfile({ ...base, validationProfile: false }).id, "personal");
 });
 
 test("writer creates files only inside generated agents folder", async () => {
@@ -94,6 +178,11 @@ test("writer creates files only inside generated agents folder", async () => {
     const runtimeAdapter = await readFile(join(root, result.outputDir, "runtime/custom-loop-adapter.mjs"), "utf8");
     const runtimeGuide = await readFile(join(root, result.outputDir, "runtime/adapters/custom-loop.md"), "utf8");
     const tools = await readFile(join(root, result.outputDir, "tools.json"), "utf8");
+    const specProfileContract = JSON.parse(await readFile(join(root, result.outputDir, "contracts/spec-profile.json"), "utf8"));
+    const systemBoundary = await readFile(join(root, result.outputDir, "contracts/system-boundary.yaml"), "utf8");
+    const toolContracts = await readFile(join(root, result.outputDir, "contracts/tool-contracts.yaml"), "utf8");
+    const observability = await readFile(join(root, result.outputDir, "contracts/observability.yaml"), "utf8");
+    const manifestJson = JSON.parse(manifest);
     assert.equal(packageManifest.schemaVersion, "agent-builder.package.v1");
     assert.equal(packageManifest.selfContained, true);
     assert.equal(packageManifest.canonicalBuilderOutput, "generated/agents/local-agent");
@@ -101,15 +190,27 @@ test("writer creates files only inside generated agents folder", async () => {
     assert.equal(packageManifest.entrypoints.skillBank, "skills/skill-bank.json");
     assert.equal(packageManifest.entrypoints.skillContract, "skills/skill-contract.md");
     assert.equal(packageManifest.entrypoints.hostDeployment, "setup/host-deployment.md");
+    assert.equal(packageManifest.entrypoints.specProfile, "contracts/spec-profile.json");
+    assert.equal(packageManifest.specProfile.id, "personal");
     assert.equal(packageJson.scripts["setup:check"], "node scripts/setup-check.mjs");
     assert.equal(packageJson.scripts["runtime:check"], "node runtime/custom-loop-adapter.mjs --fixture");
     assert.equal(requirements.schemaVersion, "agent-builder.setup-requirements.v1");
+    assert.equal(requirements.specProfile.id, "personal");
     assert.ok(requirements.requiredFiles.includes("setup/requirements.json"));
     assert.ok(requirements.requiredFiles.includes("runtime/adapter-contract.md"));
     assert.ok(requirements.requiredFiles.includes("skills/skill-bank.json"));
     assert.ok(requirements.requiredFiles.includes("skills/skill-contract.md"));
     assert.ok(requirements.requiredFiles.includes("setup/host-deployment.md"));
+    assert.ok(requirements.requiredFiles.includes("contracts/spec-profile.json"));
+    assert.ok(requirements.requiredFiles.includes("contracts/system-boundary.yaml"));
+    assert.ok(requirements.requiredFiles.includes("contracts/tool-contracts.yaml"));
+    assert.ok(requirements.requiredFiles.includes("contracts/observability.yaml"));
     assert.match(manifest, /"schemaVersion": "agent-builder.v1"/);
+    assert.equal(manifestJson.specProfile.id, "personal");
+    assert.equal(specProfileContract.profile.id, "personal");
+    assert.match(systemBoundary, /system_boundary:/);
+    assert.match(toolContracts, /permission_tier:/);
+    assert.match(observability, /required_events:/);
     assert.match(install, /Copy the entire `generated\/agents\/local-agent\/` folder/);
     assert.match(inputContract, /Required Inputs/);
     assert.match(envExample, /AGENT_PACKAGE_ROOT=/);
@@ -128,6 +229,148 @@ test("writer creates files only inside generated agents folder", async () => {
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("enterprise validation profile emits governed runtime contracts", () => {
+  const result = buildAgentArtifacts(
+    {
+      patternId: "approval-workflow",
+      projectName: "Enterprise Intake Agent",
+      description: "Routes production customer requests into governed workflow actions.",
+      validationProfile: "enterprise",
+      owners: {
+        primary: "platform-owner@example.com",
+        team: "Platform Operations",
+        runtimeIdentity: "enterprise-intake-agent-runtime",
+        humanOperators: ["ops-reviewer@example.com"],
+      },
+    },
+    { createdAt: "test" },
+  );
+
+  const paths = result.files.map((file) => file.path);
+  const manifest = JSON.parse(result.files.find((file) => file.path === "manifest.json").content);
+  const packageManifest = JSON.parse(result.files.find((file) => file.path === "agent-package.json").content);
+  const requirements = JSON.parse(result.files.find((file) => file.path === "setup/requirements.json").content);
+  const agentRegistry = result.files.find((file) => file.path === "contracts/agent-registry.yaml").content;
+  const lifecycle = result.files.find((file) => file.path === "contracts/lifecycle.yaml").content;
+  const toolContracts = result.files.find((file) => file.path === "contracts/tool-contracts.yaml").content;
+
+  assert.equal(manifest.specProfile.id, "enterprise");
+  assert.equal(manifest.specProfile.explicit, true);
+  assert.ok(manifest.specProfile.requiredContracts.includes("agent-registry"));
+  assert.ok(manifest.specProfile.requiredContracts.includes("lifecycle"));
+  for (const path of [
+    "contracts/spec-profile.json",
+    "contracts/system-boundary.yaml",
+    "contracts/agent-registry.yaml",
+    "contracts/tool-contracts.yaml",
+    "contracts/flow-topology.yaml",
+    "contracts/guardrails.yaml",
+    "contracts/human-checkpoints.yaml",
+    "contracts/observability.yaml",
+    "contracts/lifecycle.yaml",
+  ]) {
+    assert.ok(paths.includes(path), `missing ${path}`);
+    assert.ok(packageManifest.files.includes(path), `package manifest missing ${path}`);
+    assert.ok(requirements.requiredFiles.includes(path), `requirements missing ${path}`);
+  }
+  assert.match(agentRegistry, /platform-owner@example\.com/);
+  assert.match(agentRegistry, /runtime_identity:/);
+  assert.match(lifecycle, /promotion_gates:/);
+  assert.match(toolContracts, /permission_tier:/);
+});
+
+test("skill validation profile emits only the skill-level profile contract", () => {
+  const result = buildAgentArtifacts(
+    {
+      patternId: "solo-tool-agent",
+      projectName: "Reusable Skill Package",
+      validationProfile: "skill",
+    },
+    { createdAt: "test" },
+  );
+  const paths = result.files.map((file) => file.path);
+  const manifest = JSON.parse(result.files.find((file) => file.path === "manifest.json").content);
+  const requirements = JSON.parse(result.files.find((file) => file.path === "setup/requirements.json").content);
+
+  assert.equal(manifest.specProfile.id, "skill");
+  assert.deepEqual(manifest.specProfile.contractFiles, ["contracts/spec-profile.json", "skills/skill-contract.md"]);
+  assert.ok(paths.includes("contracts/spec-profile.json"));
+  assert.ok(paths.includes("skills/skill-contract.md"));
+  assert.ok(!paths.includes("contracts/system-boundary.yaml"));
+  assert.ok(requirements.requiredFiles.includes("contracts/spec-profile.json"));
+  assert.ok(requirements.requiredFiles.includes("skills/skill-contract.md"));
+});
+
+test("human checkpoint contract only lists human approval or review nodes", () => {
+  const result = buildAgentArtifacts(
+    {
+      patternId: "solo-tool-agent",
+      projectName: "Automated Eval Team Agent",
+      validationProfile: "team",
+      nodes: [
+        { id: "run", title: "Run", kind: "agent", inputs: ["request"], outputs: ["answer"], tools: [] },
+        { id: "eval", title: "Eval", kind: "eval", inputs: ["answer"], outputs: ["quality_check"], tools: [] },
+      ],
+      edges: [{ from: "run", to: "eval" }],
+      evals: [{ name: "a" }, { name: "b" }, { name: "c" }],
+      tools: [],
+    },
+    { createdAt: "test" },
+  );
+
+  const humanCheckpoints = result.files.find((file) => file.path === "contracts/human-checkpoints.yaml").content;
+  assert.match(humanCheckpoints, /human_checkpoints:/);
+  assert.doesNotMatch(humanCheckpoints, /node_id: eval/);
+});
+
+test("tools with omitted side effects are tiered consistently across contracts", () => {
+  const result = buildAgentArtifacts(
+    {
+      patternId: "solo-tool-agent",
+      projectName: "Missing Side Effect Agent",
+      tools: [
+        {
+          name: "opaque_tool",
+          responsibility: "Runs an integration without declaring side effects.",
+          permission: "ask-first",
+        },
+        {
+          name: "search_tool",
+          responsibility: "Fetches reference data.",
+          sideEffect: "network",
+          permission: "ask-first",
+        },
+      ],
+      nodes: [
+        {
+          id: "run",
+          title: "Run",
+          kind: "agent",
+          inputs: ["request"],
+          outputs: ["answer"],
+          tools: ["opaque_tool", "search_tool"],
+        },
+      ],
+      edges: [],
+    },
+    { createdAt: "test" },
+  );
+
+  const manifest = JSON.parse(result.files.find((file) => file.path === "manifest.json").content);
+  const tools = JSON.parse(result.files.find((file) => file.path === "tools.json").content);
+  const systemBoundary = result.files.find((file) => file.path === "contracts/system-boundary.yaml").content;
+  const toolContracts = result.files.find((file) => file.path === "contracts/tool-contracts.yaml").content;
+
+  assert.equal(tools.tools.find((tool) => tool.name === "opaque_tool").permissionTier, "T5");
+  assert.equal(manifest.governance.toolTiers.find((tool) => tool.tool === "opaque_tool").permissionTier, "T5");
+  assert.match(systemBoundary, /- opaque_tool/);
+  assert.match(systemBoundary, /- search_tool/);
+  assert.match(systemBoundary, /permission_tier: T5/);
+  assert.doesNotMatch(systemBoundary.split("actions_that_change_the_world:")[1], /tool: search_tool/);
+  assert.match(toolContracts, /side_effect: unspecified/);
+  assert.match(toolContracts, /permission_tier: T5/);
 });
 
 test("earnings Webex structure preserves local draft and provenance contracts", () => {

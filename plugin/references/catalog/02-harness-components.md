@@ -75,6 +75,19 @@ The six-component view above is the fastest checklist for design and evaluation 
 
 Use the component view when talking to operators or SREs. Use the artifact view when turning an agent idea into files.
 
+## Profile-Scaled Component Depth
+
+Do not apply the same component depth to every agent. The six components are always relevant, but the required evidence changes by profile:
+
+| Profile | Sufficient component evidence |
+|---|---|
+| `skill` | Trigger conditions, input/output contract, prompt instructions, host permission assumptions, and fixture-level validation. A standalone skill does not need agent registry or lifecycle governance unless it also deploys a runtime. |
+| `personal` | System boundary, tool contracts, local sandbox/read-only policy, visible stop reasons, golden tasks, and basic observability. This is the default for one-user/local agents. |
+| `team` | Personal evidence plus flow topology, guardrails, human approval/review checkpoints, retry/handoff behavior, and state ownership. Use when multiple people, hosted runtime, or shared workflow state exists. |
+| `enterprise` | Team evidence plus agent registry, IAM/service identities, audit events, lifecycle/rollback/deactivation, and eval-gated promotion. Use for production users, regulated data, system-of-record writes, or high-risk side effects. |
+
+Evaluation rule: call a primitive "missing" only if the selected profile requires it. A personal agent without an enterprise registry is acceptable; an enterprise runtime without an owner registry or lifecycle contract is not.
+
 ---
 
 ## Local Operational Overlay

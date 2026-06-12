@@ -6,7 +6,9 @@
 
 ## 1. Summary
 
-One paragraph: what harness was reviewed, what the headline problems are, whether the design is salvageable in place or needs a rebuild.
+One paragraph: what harness was reviewed, which spec profile it appears to target (`skill`, `personal`, `team`, or `enterprise`), what the headline problems are, whether the design is salvageable in place or needs a rebuild.
+
+State whether the harness is **under-validated**, **over-validated**, or **appropriately scaled** for that profile. Do not mark enterprise-only artifacts missing for a personal agent or standalone skill unless the evidence shows it should be promoted.
 
 ## 2. Findings (ordered by severity / leverage)
 
@@ -47,6 +49,12 @@ Which harness primitives are absent or under-specified. Use the harness componen
 | Host packaging | missing / weak / adequate | |
 | API-key/env contract | missing / weak / adequate | |
 
+Add a profile note under the table:
+- `skill`: skill contract, trigger/input/output, host assumptions, and fixtures are load-bearing.
+- `personal`: boundary/tool/observability/golden-task evidence is load-bearing.
+- `team`: topology, guardrails, human checkpoints, and shared-state evidence are load-bearing.
+- `enterprise`: registry, IAM, lifecycle, audit, rollback, and eval-gated promotion are load-bearing.
+
 ## 4. Repo, Skill, And Host Packaging Gaps
 
 - Whether the repo shape matches the intended deployment mode
@@ -84,6 +92,7 @@ For each fix, name the test or check that proves it landed:
 - **Fix** — reference to upgrade path step
 - **Test** — golden task, permission boundary probe, crash-recovery script, replay regression, read-after-write check, slow-consumer test, skill trigger fixture, skill-chain handoff, host manifest validation, API fixture-mode smoke, eval metric threshold
 - **Pass criteria** — concrete observable
+- **Profile relevance** — why the test is required for this profile, or which promotion signal would make it required later
 
 No fix is "done" without a confirmation test the user can run.
 

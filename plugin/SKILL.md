@@ -194,6 +194,25 @@ Activate when any of the following hold:
 8. **When generating prompts, skills, or plugin instructions**, use Prompt Builder as the prompt-quality source of truth: caller contract, deployment modules, tier calibration, and type-specific rules. Apply the agent contract for tool-using/stateful prompts and the plugin contract for embedded skill/plugin prompts. Preserve current-source checks against OpenAI, Anthropic, Perplexity/Sonar, and MCP prompt-template docs before claiming a prompt pattern is current.
 9. **When a harness spans repos, sessions, agents, daemons, or durable memory**, require operational contracts: one state owner, read-after-write evidence, receipt/ACK semantics, provenance, freshness checks, and a promotion/validation path. See `references/catalog/07-local-operational-patterns.md`.
 10. **When the user asks for an end-to-end build**, include repo structure, skill bank, skill contracts, host packaging, API-key/env contract, validation, and operating runbook. See `references/catalog/08-repo-skill-architecture.md`, `references/catalog/09-skill-bank-and-chaining.md`, and `references/catalog/10-cross-host-deployment.md`.
+11. **Scale the specification to the agent's risk and deployment profile.** A personal/local agent, reusable skill, team workflow, and enterprise runtime do not need the same validation burden. Use the profile matrix below as the minimum contract set, then promote the profile when autonomy, users, side effects, regulated data, or runtime sharing increase.
+
+## Spec Profile Matrix
+
+Use this matrix whenever the user asks whether Agent Builder can define the right components, prompts, or validation for a given agent, system, or skill.
+
+| Profile | Use when | Minimum contracts | Validation emphasis |
+|---|---|---|---|
+| `skill` | The output is a reusable prompt, skill, or plugin instruction imported by another host agent. | `contracts/spec-profile.json`, `skills/skill-contract.md` | Trigger precision, input/output shape, host permission assumptions, small fixture checks. |
+| `personal` | One user or one local workspace runs the agent. | `contracts/spec-profile.json`, `contracts/system-boundary.yaml`, `contracts/tool-contracts.yaml`, `contracts/observability.yaml` | Explicit tool permissions, sandbox/read-only boundaries, visible stop reasons, golden tasks. |
+| `team` | A shared workflow, hosted runtime, human checkpoint, or multi-agent topology is present. | Personal contracts plus `flow-topology`, `guardrails`, and `human-checkpoints`. | State ownership, handoffs/retries, approval or review gates, permission-tier review. |
+| `enterprise` | Production users, regulated data, system-of-record writes, IAM, or high-risk side effects are present. | Team contracts plus `agent-registry` and `lifecycle`. | Owner registry, IAM/service identity, audit events, rollback/deactivation, eval-gated promotion. |
+
+Profile inference rules:
+- Explicit declarations win: `skill`, `personal`, `team`, `enterprise`, or aliases such as `prototype`, `workflow`, and `production`.
+- Promote to `enterprise` on regulated/prod/IAM/customer-data/system-of-record signals or high-risk side effects.
+- Promote to `team` on hosted/hybrid runtime, approval/review checkpoints, or Type III+ multi-agent topology.
+- Keep `personal` for local draft/reasoning agents with no shared runtime, no regulated workflow, and no high-risk side effects.
+- Never force enterprise-only gates onto a personal agent or standalone skill. Missing enterprise gates are only defects when the selected profile requires them.
 
 ## Step 0 — Gather Context
 
@@ -205,10 +224,12 @@ For **design** work, confirm:
 - who the users are
 - any known constraints (solo maintenance, existing stack, timeline, local/on-device, hardware limits)
 - deployment mode: API-key runtime, Claude-native, Codex-native, host-agnostic, or hybrid
+- intended profile: skill, personal, team, or enterprise; if unclear, infer it from users, runtime, side effects, data sensitivity, and autonomy
 - whether reusable skills should be created, modified, chained, or only selected from a bank
 
 For **evaluation** work, inspect the harness itself:
 - read the codebase, agent config, skills, hooks, architecture docs
+- identify the implied profile before judging missing components; a personal agent can pass with lighter validation than enterprise
 - if evidence is missing, ask for the narrowest missing input and keep moving
 - do not evaluate from vibes alone
 
@@ -320,6 +341,7 @@ Read only the files the request actually needs. This file is the index — do no
 
 ### For `design`
 - recommended harness shape
+- selected spec profile and why that profile is sufficient for the users, side effects, deployment mode, and data sensitivity
 - deployment mode and repo/package structure
 - skill bank, skill contracts, and skill-chain/router if applicable
 - core primitives and subsystem boundaries
@@ -329,6 +351,7 @@ Read only the files the request actually needs. This file is the index — do no
 
 ### For `evaluation`
 - findings ordered by severity or leverage
+- profile verdict: whether the current spec is under-validated, over-validated, or appropriately scaled
 - missing or weak primitives
 - repo/package/skill-bank gaps
 - user experience and operational gaps
@@ -337,6 +360,7 @@ Read only the files the request actually needs. This file is the index — do no
 
 ### For `design + evaluation`
 - target architecture
+- target spec profile and current-vs-target validation gap
 - comparison against current or likely failure modes
 - repo/package/skill-bank target state
 - implementation phases
@@ -354,6 +378,7 @@ Read only the files the request actually needs. This file is the index — do no
 - Did you keep the design lean enough for a solo developer unless the request clearly demanded more?
 - Did you avoid recommending multi-agent coordination by default?
 - Did you include evaluation, not just construction?
+- Did you scale validation to skill/personal/team/enterprise instead of forcing one enterprise checklist onto every agent?
 - Did you give the user an operational path forward instead of abstract theory?
 - If you recommended multi-agent, a framework, or a memory substrate, did you cite the catalog file you pulled it from?
 - If the target is a local/open-source model, did you apply the stricter posture from `catalog/06-local-and-open-source-models.md` (single-agent always, cull tools, compaction mandatory, evals non-optional)?
