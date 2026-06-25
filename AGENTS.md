@@ -39,6 +39,7 @@ The marketplace install points at `path: plugin` inside this repo. The `plugin/.
 | `references/catalog/10-cross-host-deployment.md` | API-key runtime, Claude-native, Codex-native, host-agnostic, hybrid deployment and collaboration contracts |
 | `references/methodology/12-agentic-systems-handoff-addendum.md` | Autonomy boundaries, tool permission tiers (T0–T5), MCP/A2A guidance, OWASP/NIST safety |
 | `references/methodology/13-agentic-product-dev-synthesis.md` | Product-development agent systems: workflow-first, A0–A4 autonomy ladder, eval gates |
+| `references/methodology/14-data-integrity-contract.md` | Data-bearing agents: accurate sourced collection, deterministic computation, sourced rendering, automated-gate + human-verifier verification; deterministic-vs-LLM boundary |
 | `references/templates/design-deliverable.md` | Output shape for design mode |
 | `references/templates/evaluation-deliverable.md` | Output shape for evaluation mode |
 | `references/templates/agentic-handoff/` | Reusable schemas: role cards, handoff envelopes, tool contracts, skill contracts, guardrails, traceability matrix, eval scorecard, spec-lint checklist (index at `README.md`) |

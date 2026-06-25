@@ -2,7 +2,7 @@
 name: agent-builder
 description: Design, evaluate, or rebuild agentic harnesses — tool use, permissions, workflow state, memory, evals, observability, multi-agent, framework selection. Activates on harness-gap symptoms too.
 author: Tyrone Ross
-version: 0.3.1
+version: 0.3.2
 tags: [agentic-harness, agents, architecture, evaluation, memory, observability, frameworks, multi-agent, local-models, open-source, workflow, permissions, skills, skill-bank, plugins, deployment]
 category: developer-tools
 difficulty: advanced
@@ -160,7 +160,7 @@ Most AI products do not break because the model is too weak. They break at the *
 
 Three complementary bodies of knowledge ship with this skill:
 
-- **`references/methodology/`** — Agent Builder-owned research synthesis for agentic handoffs and product-development agent systems.
+- **`references/methodology/`** — Agent Builder-owned research synthesis for agentic handoffs, product-development agent systems, and the data-integrity contract for data-bearing agents.
 - **`references/catalog/`** — *what exists to choose from*. Empirical inventory: architecture types I–V, six-component harness model, frameworks (LangGraph, CrewAI, Pydantic AI, smolagents, DSPy, AutoGen, Bedrock), memory substrates, lab patterns (Anthropic, OpenAI, Perplexity, Manus, Google, Devin, Cursor).
 - **Prompt Builder companion rules** — prompt contracts for generated agents, skills, plugins, eval judges, and tool-using prompts.
 
@@ -194,6 +194,7 @@ Activate when any of the following hold:
 8. **When generating prompts, skills, or plugin instructions**, use Prompt Builder as the prompt-quality source of truth: caller contract, deployment modules, tier calibration, and type-specific rules. Apply the agent contract for tool-using/stateful prompts and the plugin contract for embedded skill/plugin prompts. Preserve current-source checks against OpenAI, Anthropic, Perplexity/Sonar, and MCP prompt-template docs before claiming a prompt pattern is current.
 9. **When a harness spans repos, sessions, agents, daemons, or durable memory**, require operational contracts: one state owner, read-after-write evidence, receipt/ACK semantics, provenance, freshness checks, and a promotion/validation path. See `references/catalog/07-local-operational-patterns.md`.
 10. **When the user asks for an end-to-end build**, include repo structure, skill bank, skill contracts, host packaging, API-key/env contract, validation, and operating runbook. See `references/catalog/08-repo-skill-architecture.md`, `references/catalog/09-skill-bank-and-chaining.md`, and `references/catalog/10-cross-host-deployment.md`.
+10a. **When the agent or plugin collects, computes, transforms, or displays data** (numbers, stats, charts, tables, metrics, calculated results), require a data-integrity contract: accurate sourced collection (no model-memory data), deterministic computation (any math runs in a program/script, never the model's head), sourced rendering (citation travels in the artifact), and verification (a fail-closed automated gate for presence/format/ranges plus a human-verifier checkpoint for credibility/correctness). State the code-vs-human boundary explicitly — code enforces presence/format, not accuracy. See `references/methodology/14-data-integrity-contract.md`.
 11. **Scale the specification to the agent's risk and deployment profile.** A personal/local agent, reusable skill, team workflow, and enterprise runtime do not need the same validation burden. Use the profile matrix below as the minimum contract set, then promote the profile when autonomy, users, side effects, regulated data, or runtime sharing increase.
 
 ## Spec Profile Matrix
@@ -303,6 +304,7 @@ Read only the files the request actually needs. This file is the index — do no
 ### Research Synthesis (how to decide for buildable agent outputs)
 - `references/methodology/12-agentic-systems-handoff-addendum.md` — Perplexity-derived methodology for agentic-system handoffs: autonomy boundaries, tool permission tiers (T0–T5), orchestration topology, memory taxonomy, the 14-file handoff folder, MCP/A2A guidance, OWASP/NIST safety taxonomy.
 - `references/methodology/13-agentic-product-dev-synthesis.md` — cross-source synthesis (Perplexity v2 + ChatGPT) for **product-development agent systems**: workflow-first principle, triage + specialists + reviewers default architecture, role-card pattern, canonical A0–A4 autonomy ladder (Perplexity v2 + ChatGPT; Perplexity v1's A0–A5 retained as a more granular variant), ask-before policy, confidence scoring, agent-system-specific eval gates (spec lint, traceability, scorecard). Read this when the agent's job is to produce a buildable spec for a downstream coding agent.
+- `references/methodology/14-data-integrity-contract.md` — the **data-integrity contract** for agents/plugins that collect, compute, or display data: four pillars (accurate sourced collection, deterministic computation, sourced rendering, automated-gate + human-verifier verification), the deterministic-vs-LLM ownership boundary, per-use-case scaling, and a spec checklist. Read this whenever the target emits numbers, statistics, charts, tables, metrics, or calculated results.
 
 ### Catalog (what exists)
 - `references/catalog/01-architecture-taxonomy.md` — Type I–V classification, adoption rates, 4 debates (single-vs-multi, frameworks-vs-raw, scaffolding-vs-minimal, augment-vs-automate), 10 verified stats, coordination patterns, architecture timeline.
