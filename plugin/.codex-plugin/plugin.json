@@ -2,7 +2,8 @@
   "name": "agent-builder",
   "description": "Standalone plugin companion for designing, evaluating, packaging, and deploying agentic harnesses with repo structure, reusable skills, skill banks, and cross-host contracts",
   "author": {
-    "name": "Tyrone Ross"
+    "name": "Tyrone Ross",
+    "url": "https://github.com/tyroneross"
   },
   "homepage": "https://github.com/tyroneross/agent-builder/tree/main/plugin",
   "repository": "https://github.com/tyroneross/agent-builder",
